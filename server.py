@@ -16,11 +16,6 @@ names = set()
 names_lock = threading.Lock() # Global thread locks just in case to prevent race conditions
 
 
-'''
-Target function to handle each client in a separate thread to avoid blocking functions like socket.recv() from blocking the main thread, this allows us to handle multiple clients
-client is a client socket to the client, which is what we use to send data to it
-address contains the ip address and the port of the client
-'''
 class player():
 	def __init__(self):
 		self.username = username
@@ -35,6 +30,11 @@ class player():
 
 
 
+'''
+Target function to handle each client in a separate thread to avoid blocking functions like socket.recv() from blocking the main thread, this allows us to handle multiple clients
+client is a client socket to the client, which is what we use to send data to it
+address contains the ip address and the port of the client
+'''
 def handle_connection(client, address):
 	# For debugging purposes only
 	print(f"{client}")
