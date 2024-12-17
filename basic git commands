@@ -1,6 +1,6 @@
 General git commands
 This guide assumes that you're already in the working directory, if not use cd PATH_TO_WORKING_DIRECTORY to change directories
-
+Picked from this tutorial: https://www.youtube.com/watch?v=mJ-qvsxPHpY
 
 
 ### To initialise an new directory ###
@@ -50,17 +50,33 @@ Think of it as saving onto another save file so you don't overwrite your main on
 ### To pull changes from a branch ###
 Use: git pull origin BRANCH_NAME
 
-This can be used to keep your local copy in sync with the one online
-
-
-### To merge your changes back into main ###
-Push your changes onto your branch and initiate a pull request on github.
-The repo owner will review any changes and merge if appopriate.
-
--------------> Main
-	\______/
+This can be used to keep your existing local copy in sync with the one online
 
 
 ### To clone an entire repo ###
-
 Use: git clone URL
+
+NOTE: git pull only pulls in files that have changed, git clone just replaces your local copy
+
+
+
+### Simple demonstration ###
+Assuming that you're pulling from an existing repo
+
+
+git clone URL # Clone remote repo
+
+cd into the cloned directory
+
+git checkout -b NEW_BRANCH_NAME # Create a new branch and switch to it
+
+Now you can make whatever changes to the files you want here, after you're done do
+
+git add . # Add changes
+
+git commit -m "MEANINGFUL MESSAGE" # Give your changes a name
+
+git push -u origin NEW_BRANCH_NAME # Push your commit online into your branch
+
+You can now go to github and start a pull request to get your changes merged
+
