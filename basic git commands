@@ -1,0 +1,66 @@
+General git commands
+This guide assumes that you're already in the working directory, if not use cd PATH_TO_WORKING_DIRECTORY to change directories
+
+
+
+### To initialise an new directory ###
+You only have to do this once and only if it has not already been done before previously in the folder that you downloaded
+Use: git init
+
+
+### To add files or changes ###
+Use: 
+
+git add FILE1 FILE2 .... for specific file 
+
+or 
+
+gid add . for all files
+
+
+### To commit changes, i.e. give them a name ###
+Use: git commit -m "DESCRIPTION OF CHANGES"
+
+
+### To see a log of all changes ###
+Use: git log
+
+
+### To jump to a specific commit ###
+Use git log to find the change to go back to and get its commit id then do
+
+git checkout COMMIT_ID
+
+note that this will put you in a different branch
+
+
+### To push your changes to a branch ####
+Use: git push -u origin BRANCH_NAME
+
+
+### To create and change into a new branch ###
+Use: git checkout -b NEW_BRANCH_NAME
+
+------------> Main
+	\___ New Branch to make changes
+
+Think of it as saving onto another save file so you don't overwrite your main one
+
+
+### To pull changes from a branch ###
+Use: git pull origin BRANCH_NAME
+
+This can be used to keep your local copy in sync with the one online
+
+
+### To merge your changes back into main ###
+Push your changes onto your branch and initiate a pull request on github.
+The repo owner will review any changes and merge if appopriate.
+
+-------------> Main
+	\______/
+
+
+### To clone an entire repo ###
+
+Use: git clone URL
