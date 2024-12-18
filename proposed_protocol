@@ -8,12 +8,13 @@ Server sends START to start a round
 WAIT
 Server sends to client to indicate that game has not started
 
+
 VERIFY
 Client sends VERIFY and server responds with a magic string to ensure we don't connect to a random server
 
 
-SET_NAME{NAME}
-Client sends a username to the server to see if it's available, if available continue if not we send NAME_UNAVAILABLE
+SET_NAME {NAME}
+Client sends a username to the server to see if it's available, if available continue if not we send NAME_UNAVAILABLE, sent in two parts so we don't have to use regex to match strings
 
 
 NAME_UNAVAILABLE
@@ -21,15 +22,17 @@ Server sends to client if username is already taken, client must prompt the user
 
 
 CLIENT_PACKET {TIME_DELTA, CORRECT}
-Client sends this to the server every time a player submits a word, TIME_DELTA is the difference between when the player receives the prompt and when they submit, CORRECT shows whether the player got the word correct
+Client sends this to the server every time a player submits a word, TIME_DELTA is the difference between when the player receives the prompt and when they submit
+CORRECT shows whether the player got the word correct
+Sent in two parts 
 
 
 FF
 Client sends to server if player drops out of the game
 
 
-SERVER_PACKET{WORD(s)}
-The server either sends a list of words or one word at a time, we'll decide after we set the rules
+WORD_PAYLOAD {WORD(s)}
+The server sends a list of words to the client that they have to type out
 
 
 GET_LEADERBOARD
