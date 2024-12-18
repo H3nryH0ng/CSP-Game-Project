@@ -8,9 +8,8 @@ Server sends START to start a round
 WAIT
 Server sends to client to indicate that game has not started
 
-
-CONNECT
-Client sends CONNECT and server responds with a magic string to ensure we don't connect to a random server
+VERIFY
+Client sends VERIFY and server responds with a magic string to ensure we don't connect to a random server
 
 
 SET_NAME{NAME}
@@ -21,10 +20,8 @@ NAME_UNAVAILABLE
 Server sends to client if username is already taken, client must prompt the user again for another username
 
 
-CLIENT_PACKET{NAME, TIME_DELTA, TARGET_WORD, WORD_SUBMITTED}
-Client sends this to the server every time a player submits a word, NAME is the username, TIME_DELTA is the difference between when the player receives the prompt and when they submit,
-TARGET_WORD is the word that the player is supposed to type
-WORD_SUBMITTED is the word the player actually typed
+CLIENT_PACKET {TIME_DELTA, CORRECT}
+Client sends this to the server every time a player submits a word, TIME_DELTA is the difference between when the player receives the prompt and when they submit, CORRECT shows whether the player got the word correct
 
 
 FF

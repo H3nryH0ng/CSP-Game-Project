@@ -13,8 +13,9 @@ RECEIVE_SIZE = 1024
 
 # Global variables go here
 names = set() 
-names_lock = threading.Lock() # Global thread locks just in case to prevent race conditions
-
+lock = threading.Lock() # Global thread locks just in case to prevent race conditions, dunno if we'll use this yet
+threads = set()
+word_list = []
 
 class player():
 	def __init__(self):
@@ -67,7 +68,19 @@ def handle_connection(client, address):
 				print(f"Client {address} disconnected")
 				client.close()
 				break
-			# TODO: Add more cases to implement protocol for sending data to client, currently just prints out what the client sent and sends 'men' back
+			elif message == "CLIENT_PACKET":
+				game_packet = client.recv(RECEIVE_SIZE).decode()
+				'''
+				game_packet is a string in the form {TIME_DELTA, CORRECT}
+				doing [1:-1] returns a slice of the string from the first character to the last character and doing str.split(',') splits the string using "," as a delimiter
+				data_pack[0] contains TIME_DELTA
+				data_pack[1] contains CORRECT 
+				'''
+				data_pack = game_packet[1:-1].split(',')
+
+			elif message == "GET_LEADERBOARD":
+				pass
+
 			else:
 				print(f"{message}")
 				'''
@@ -119,9 +132,15 @@ def main():
 			# Creates a new thread and calls handle_connection() with arguements client, address we got from socket.accept()
 			# This is not accurate but just think of it as assigning one core out of many from your CPU to execute this function
 			new_thread = threading.Thread(target = handle_connection, args=(client, address))
+			 # For each thread we create, add them to the set threads
+			threads.add(new_thread)
 			new_thread.start()
 			connected += 1
-	
+		
+		# Wait for all threads to complete
+		for thread in threads:
+			thread.join()
+
 	except Exception as e:  
 		print(f"Caught: {e}")
 		exit()
