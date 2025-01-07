@@ -5,10 +5,6 @@ START
 Server sends START to start a round
 
 
-WAIT
-Server sends to client to indicate that game has not started
-
-
 VERIFY
 Client sends VERIFY and server responds with a magic string to ensure we don't connect to a random server
 
@@ -21,9 +17,13 @@ NAME_UNAVAILABLE
 Server sends to client if username is already taken, client must prompt the user again for another username
 
 
+NAME_OK
+Server sends to clients if name is accepted
+
+
 CLIENT_PACKET {TIME_DELTA, CORRECT}
-Client sends this to the server every time a player submits a word, TIME_DELTA is the difference between when the player receives the prompt and when they submit
-CORRECT shows whether the player got the word correct
+Client sends this to the server every time a player submits a word, TIME_DELTA is the difference between when the player receives the prompt and when they submit in milliseconds
+CORRECT shows whether the player got the word correct, is an either 1, or 0, will be casted to an int on the server side
 Sent in two parts 
 
 
@@ -31,11 +31,18 @@ FF
 Client sends to server if player drops out of the game
 
 
+REQUEST_WORD_PAYLOAD
+The client sends REQUEST_WORD_PAYLOAD and the server will respond with WORD_PAYLOAD
+
+
 WORD_PAYLOAD {WORD(s)}
 The server sends a list of words to the client that they have to type out
 
 
-GET_LEADERBOARD
-Client sends to the server to get the leaderboard after the game ends
+END
+Client sends to the server to get the current leaderboard after the game ends and disconnects the client, the client should be expecting the leaderboard before disconnecting.
+NOTE: "\n" is used as a delimiter instead of the usual ","
 
 
+SERVER_TERMINATED
+Sent to the client before the server if the server was terminated in a controlled manner. Client should disconnect after receiving.
