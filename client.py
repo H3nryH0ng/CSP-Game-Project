@@ -6,7 +6,7 @@ import socket
 
 # Named constants go here
 RECEIVE_SIZE = 1024
-
+CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
 
 
 # Global variables go here
@@ -14,19 +14,11 @@ RECEIVE_SIZE = 1024
 
 
 
-# TODO: Prompt the user for a username and use it for each of their submissions to the server, we'll use a set on the server end to prevent duplicate names
-# TODO: Check if we connected to an instance of the game server or just a random server, maybe we can just a "magic string" to identify itself
-# TODO: Don't start the game and show a waiting prompt until all players are connected
-# TODO: Actually implement the game itself, once the game starts we need to get data from the server, parse it, get input from the user, send it to the server
-# TODO: Show leaderboard if possible
-# TODO: Clear the terminal first before printing each new prompt
-# TODO: Establish more game rules, do we just eliminate the player if they submit a mistake or do we implement a life system, stuff like that
-# TODO: Establish a text based protocol to enable communication between client and server. e.g. receiving START from the server triggers the game from clients, we can discuss this out later
-# TODO: Establish game rules down below
-# TODO: Catch things that can go wrong and give more meaningful error messages to the user in the try-except statements, currently just exits so we can get the exception names
-# TODO: After prompt the user if they want to exit or play another round after the previous round finishes
+# TODO: Catch things that can go wrong and give more meaningful error messages to the user in the try-except statements, currently just exits so we can get the exception names 8
 
 # NOTE: Always capitalise messages using str.upper() method before encoding and sending to server to avoid "apple" and "Apple" being different, there's an example of how to send and receive messages in the server.py
+# this only applies to protocol messages, the word list sent will still be case sensitive.
+
 
 
 '''
@@ -34,7 +26,6 @@ Current gameplay idea:
 Players start by receiving a randomly determined word by the server that they have to type out as fast as possible.
 We can measure time and take the difference between each new prompt to get time taken
 We send the string and the time taken to the server to update the player's status
-We can add more ideas here
 '''
 
 # Entry point here
@@ -65,15 +56,24 @@ def main():
 	while True:
 		to_send = input("Input? ").upper()
 		
+        # TODO: Check if we connected to an instance of the game server or just a random server, CHECKSUM is defined globally, if we send VERIFY and CHECKSUM doesn't match, give a meaningful message then exit 1
+        # TODO: Don't start the game and show a waiting prompt until all players are connected 2
+
 		if to_send == "FF":
 			server.send(to_send.encode())
 			server.close()
 			break
+
+        # TODO: Prompt the user for a username and use it for each of their submissions to the server, we'll use a set on the server end to prevent duplicate names 0
+		
+        # TODO: Actually implement the game itself, once the game starts we need to get data from the server, parse it, get input from the user, send it to the server 3
+        # TODO: Clear the terminal first before printing each new prompt 5
 		else:
 			server.send(to_send.encode())
-
+        # TODO: Show leaderboard after player completes the list 4
+        # TODO: After prompt the user if they want to exit or play another round after the previous round finishes 9
+		
 		print(server.recv(RECEIVE_SIZE).decode())
 
-	
 # Calls the main function
 main()

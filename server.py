@@ -24,9 +24,9 @@ word_set = set()
 start = False
 
 
-class player:
+class player():
 	def __init__(self):
-		self.username = username
+		self.username = ""
 		self.num_correct = 0
 		self.total_time = 0.0
 	
@@ -48,10 +48,10 @@ def gen_leaderboard():
 
 	if MAX_CONNECTIONS < 5:
 		for i in range(len(players)):
-			result.join(f"{i}.\t {players[i].username\t\n}")
+			result.join(f"{i}.\t {players[i].username}\t\n")
 	else:
 		for i in range(5):
-			result.join(f"{i}.\t {players[i].username]\t\n}")
+			result.join(f"{i}.\t {players[i].username}\t\n")
 	
 	return f"{{result}}"
 
@@ -242,9 +242,8 @@ def main():
 			client, address = sock.accept()
 			print(f"Accepted connection from {address}")
 			
-			new_player_object = player()
-			players.append(new_player_object())
-
+			new_player_object = player
+			players.append(new_player_object)
 			# Creates a new thread and calls handle_connection() with arguements client, address we got from socket.accept()
 			# This is not accurate at all but just think of it as assigning one core out of many from your CPU to execute this function
 			new_thread = threading.Thread(target = handle_connection, args=(client, address, new_player_object))
