@@ -57,9 +57,18 @@ def main():
 	# Main game loop is here
 	while True:
 		# Should we do a help cmd to guide the user? ~ Francis
-		to_send = str(input("Input? ").upper())
+		
 		
 		# TODO: Check if we connected to an instance of the game server or just a random server, CHECKSUM is defined globally, if we send VERIFY and CHECKSUM doesn't match, give a meaningful message then exit 1
+		
+		server.send("VERIFY".encode())
+		verifier = server.recv(RECEIVE_SIZE).decode()
+
+		if verifier != CHECKSUM:
+			print("Please connect to a valid game server")
+			exit()
+
+
 		# TODO: Don't start the game and show a waiting prompt until all players are connected 2
 
 		if to_send == "FF":
