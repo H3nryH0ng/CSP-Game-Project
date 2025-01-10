@@ -58,8 +58,6 @@ def main():
 	while True:
 		# Should we do a help cmd to guide the user? ~ Francis
 		to_send = str(input("Input? ").upper())
-		# Syntax allow checking for the first word of the command, in case of cmd having multiple parameter
-		to_send_parameter = to_send.split(" ")
 		
 		# TODO: Check if we connected to an instance of the game server or just a random server, CHECKSUM is defined globally, if we send VERIFY and CHECKSUM doesn't match, give a meaningful message then exit 1
 		# TODO: Don't start the game and show a waiting prompt until all players are connected 2
