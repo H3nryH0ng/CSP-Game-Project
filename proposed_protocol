@@ -32,11 +32,8 @@ Client sends to server if player drops out of the game
 
 
 REQUEST_WORD_PAYLOAD
-The client sends REQUEST_WORD_PAYLOAD and the server will respond with WORD_PAYLOAD
-
-
-WORD_PAYLOAD {WORD(s)}
-The server sends a list of words to the client that they have to type out
+The client sends REQUEST_WORD_PAYLOAD and the server will respond with a word payload like so:
+{'BURLINGTON', 'Thousands', 'RESPECTED', 'suggestions', 'respective', 'albuquerque', 'EXISTENCE', 'ACDBENTITY', 'CONTRACTOR'}
 
 
 END
@@ -46,3 +43,6 @@ NOTE: "\n" is used as a delimiter instead of the usual ","
 
 SERVER_TERMINATED
 Sent to the client before the server if the server was terminated in a controlled manner. Client should disconnect after receiving.
+
+READY
+Client sends to the server after username is set to show that it's waiting. Sending START will start the client.
