@@ -71,6 +71,14 @@ def main():
 
 		# TODO: Don't start the game and show a waiting prompt until all players are connected 2
 
+		server.send("READY".encode())
+		print("Waiting for Players")
+		starter = server.recv(RECEIVE_SIZE).decode()
+		if starter == "START": 
+			server.send("REQUEST_WORD_PAYLOAD".encode())
+			
+			# Expect WORD_PAYLOAD - For Francis
+
 		if to_send == "FF":
 			server.send(to_send.encode())
 			server.close()
