@@ -76,7 +76,6 @@ def handle_connection(client, address, player_object):
 			socket.recv is a blocking call meaning execution will stop here until there's more data to read
 			'''
 			message = client.recv(RECEIVE_SIZE).decode()
-			message_parameter = message.split(" ")
 
 			'''
 			NOTE: ALL strings sent should be converted to UPPERCASE before sending to avoid "apple" and "Apple" being different, 
@@ -126,8 +125,8 @@ def handle_connection(client, address, player_object):
 			elif message == "VERIFY":
 				client.send(CHECKSUM.encode())
 			
-			elif message_parameter[0] == "SET_NAME":
-				requested_name = ' '.join(message_parameter[1:])
+			elif message == "SET_NAME":
+				requested_name = client.recv(RECIEVE_SIZE).decode()[1:-1]
 				
 				with lock:
 					if requested_name in names:

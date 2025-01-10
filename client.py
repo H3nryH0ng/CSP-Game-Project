@@ -31,7 +31,7 @@ We send the string and the time taken to the server to update the player's statu
 # Entry point here
 def main():
     # Defined variable
-	name_request = str("")
+	# Don't remove this line, it somehow fk with the index of the code
     
 	# Prompt the user for the address of the server instance to connect to until connection is successful
 	while True:
@@ -62,18 +62,29 @@ def main():
 		# TODO: Check if we connected to an instance of the game server or just a random server, CHECKSUM is defined globally, if we send VERIFY and CHECKSUM doesn't match, give a meaningful message then exit 1
 		# TODO: Don't start the game and show a waiting prompt until all players are connected 2
 
-		if to_send_parameter[0] == "FF":
+		if to_send == "FF":
 			server.send(to_send.encode())
 			server.close()
 			break
 
 		# TODO: Prompt the user for a username and use it for each of their submissions to the server, we'll use a set on the server end to prevent duplicate names 0
-		if to_send_parameter[0] == "SET_NAME":
+		if to_send == "SET_NAME":
 		
-			name_request = ' '.join(to_send_parameter[1:])
+			name_request = str(input("Name?").upper())
 
 			server.send(to_send.encode())
 			print(f"Requesting name set to {name_request}")
+   
+			# Waiting for server to respond
+			server_msg = server.recv(RECEIVE_SIZE).decode()
+
+			# Name request is taken
+			if server_msg == "NAME_UNAVAILABLE":
+				print("Name taken, please use another name")
+
+			# Name request is okay 
+			elif server_msg == "NAME_OK":
+				print(f"Name set to {name_request}")
 
 		# TODO: Actually implement the game itself, once the game starts we need to get data from the server, parse it, get input from the user, send it to the server 3
 		# TODO: Clear the terminal first before printing each new prompt 5
@@ -82,16 +93,7 @@ def main():
 		# TODO: Show leaderboard after player completes the list 4
 		# TODO: After prompt the user if they want to exit or play another round after the previous round finishes 9
 		
-		server_msg = server.recv(RECEIVE_SIZE).decode()
-		print(server_msg)
-
-		# Name request is taken
-		if server_msg == "NAME_UNAVAILABLE":
-			print("Name taken, please use another name")
-
-		# Name request is okay 
-		elif server_msg == "NAME_OK":
-			print(f"Name set to {name_request}")
+		#M MSG from server used to print here
 
 # Calls the main function
 main()
