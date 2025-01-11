@@ -1,5 +1,7 @@
 import socket
 from time import sleep
+import pickle
+from collections import deque
 
 # Constant configuration variables go here, use ALL CAPS to indicate constant
 
@@ -19,9 +21,6 @@ CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
 
 # NOTE: Always capitalise protocol messages before encoding and sending to server to avoid "apple" and "Apple" being different, there's an example of how to send and receive messages in the server.py
 # this only applies to protocol messages, the word list sent will still be case sensitive.
-
-
-
 
 # Entry point here
 def main():
@@ -99,16 +98,50 @@ def main():
 				server.send("REQUEST_WORD_PAYLOAD".encode())
 				
 				# Expect WORD_PAYLOAD and exit wait loop - For Francis
-
+			if starter == "WORD_PAYLOAD":
+				word_list_byte = server.recv(RECEIVE_SIZE)
+				word_list = pickle.load(word_list_byte)
+				break
 
 			sleep(0.1)
 
 
 		# TODO: Actually implement the game itself, once the game starts we need to get data from the server, parse it, get input from the user, send it to the server 3
+		# Plan to make this a func?
+		next_list = deque([])
+
+		# List of next 5 words
+		if len(word_list) > 5:
+			for i in range(1,6):
+				next_list.append(word_list[i])
+		else:
+			next_list = deque(word_list)
+			next_list.popleft()
+			
+		# Start typing
+		for n in range(len(word_list)):
+			print(word_list[n]) # Show word to print
+			
+			print('Next: ', end='') # Show next 5 words
+			for word in next_list:
+				print(word, end='')
+				if word != next_list[-1]:
+					print(', ', end='')
+			print('')
+
+			# Create a list with the next 5 words
+			if n < (len(word_list) - 6):
+				next_list.popleft()
+				next_list.append(word_list[n+6])
+			elif len(next_list) != 0:
+				next_list.popleft()
+			
+			player_input = input('')
+			print('')
+
 		# TODO: Clear the terminal first before printing each new prompt 5
 		# TODO: Show leaderboard after player completes the list 4
 		# TODO: After prompt the user if they want to exit or play another round after the previous round finishes 9
-		
 
 # Calls the main function
 main()
