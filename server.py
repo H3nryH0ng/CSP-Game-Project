@@ -46,15 +46,14 @@ class player():
 
 	def reset_combo(self):
 		self.current_combo = 0
-    
-    def calculate_score(self, time_delta):
-        if time_delta < 750:
-            self.score += (1000 + 1000 - (time_delta / 4)) + self.current_combo * 300
-        else:
-            self.score += 100 + self.current_combo * 300
-        
-        
-        
+	
+	def calculate_score(self, time_delta):
+		if time_delta < 750:
+			self.score += (1000 + 1000 - (time_delta / 4)) + self.current_combo * 300
+		else:
+			self.score += 100 + self.current_combo * 300
+
+
 def gen_leaderboard():
 	result = []
 	
