@@ -1,5 +1,5 @@
 Keywords that the client and server can use to communicate, we just have to compare the string we receive to determine what we send, subject to change
-
+NOTE: ONLY protocol keywords are uppercase
 
 START
 Server sends START to start a round
@@ -9,7 +9,7 @@ VERIFY
 Client sends VERIFY and server responds with a magic string to ensure we don't connect to a random server
 
 
-SET_NAME {NAME}
+SET_NAME NAME
 Client sends a username to the server to see if it's available, if available continue if not we send NAME_UNAVAILABLE, sent in two parts so we don't have to use regex to match strings
 
 
@@ -21,10 +21,13 @@ NAME_OK
 Server sends to clients if name is accepted
 
 
-CLIENT_PACKET {TIME_DELTA, CORRECT}
-Client sends this to the server every time a player submits a word, TIME_DELTA is the difference between when the player receives the prompt and when they submit in milliseconds
+CLIENT_PACKET (TIME_DELTA, CORRECT)
+Client sends this to the server every time a player submits a word,
+
+TIME_DELTA is the difference between when the player receives the prompt and when they submit in milliseconds
 CORRECT shows whether the player got the word correct, is an either 1, or 0, will be casted to an int on the server side
-Sent in two parts 
+
+Sent in two parts, TIME_DELTA and CORRECT as a python tuple
 
 
 FF
@@ -32,17 +35,17 @@ Client sends to server if player drops out of the game
 
 
 REQUEST_WORD_PAYLOAD
-The client sends REQUEST_WORD_PAYLOAD and the server will respond with a word payload like so:
-{'BURLINGTON', 'Thousands', 'RESPECTED', 'suggestions', 'respective', 'albuquerque', 'EXISTENCE', 'ACDBENTITY', 'CONTRACTOR'}
+The client sends REQUEST_WORD_PAYLOAD and the server will respond with a word payload in the form of a python list object
 
 
 END
 Client sends to the server to get the current leaderboard after the game ends and disconnects the client, the client should be expecting the leaderboard before disconnecting.
-NOTE: "\n" is used as a delimiter instead of the usual ","
+The server will respond by sending a python list object with the names and scores of people at the top
 
 
 SERVER_TERMINATED
 Sent to the client before the server if the server was terminated in a controlled manner. Client should disconnect after receiving.
+
 
 READY
 Client sends to the server after username is set to show that it's waiting. Sending START will start the client.

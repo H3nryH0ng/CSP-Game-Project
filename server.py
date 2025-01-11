@@ -2,6 +2,8 @@ import threading
 import socket
 import linecache
 from random import randint
+from time import sleep
+import pickle
 
 # Constant configuration variables go here, use ALL CAPS to indicate constant
 MAX_CONNECTIONS = 1
@@ -11,49 +13,59 @@ WORD_SET_LENGTH = 100
 
 
 # Named constants go here
-RECEIVE_SIZE = 1024
+RECEIVE_SIZE = 4096
 CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
-
+DEBUG = 1
 
 # Global variables go here
-names = set() 
+names = set()
 lock = threading.Lock()
 threads = []
 players = []
-word_set = set()
+word_list = []
 start = False
-
+ready = 0
 
 class player():
 	def __init__(self):
 		self.username = ""
-		self.num_correct = 0
-		self.total_time = 0.0
+		self.current_combo = 0
+		self.score = 0
 	
 	def add_time(self, time_delta):
 		self.total_time += time_delta
 	
-	def set_name(self, username):
-		self.username = username
+	def set_name(self, requested_username):
+		self.username = requested_username
 	
-	def add_correct():
+	def add_correct(self):
 		self.num_correct += 1
+
+	def add_combo(self):
+		self.current_combo += 1
+
+	def reset_combo(self):
+		self.current_combo = 0
 
 
 def gen_leaderboard():
-	result = ""
+	result = []
 	
 	with lock:
-		players = sorted(players, key = lambda player: player.num_correct / player.total_time, reversed = True)
+		current_leaderboard = sorted(players, key = lambda player: player.score, reversed = True)
 
 	if MAX_CONNECTIONS < 5:
-		for i in range(len(players)):
-			result.join(f"{i}.\t {players[i].username}\t\n")
+		for player in current_leaderboard:
+			result.append((player.username, player.score))
 	else:
 		for i in range(5):
-			result.join(f"{i}.\t {players[i].username}\t\n")
+			result.append((current_leaderboard[i].username, current_leaderboard[i].score))
 	
-	return f"{{result}}"
+	if DEBUG:
+		print(result)
+	
+	return result
+
 
 '''
 Target function to handle each client in a separate thread to avoid blocking functions like socket.recv() from blocking the main thread, this allows us to handle multiple clients
@@ -62,8 +74,9 @@ address contains the ip address and the port of the client
 '''
 def handle_connection(client, address, player_object):
 	# For debugging purposes only
-	print(f"{client}")
-	print(f"{address}")
+	if DEBUG:
+		print(f"{client}")
+		print(f"{address}")
 	
 	# Try to execute the code inside the block, catch _ANY_ exception, aka errors, print them to the console, and exit
 	try:
@@ -99,35 +112,33 @@ def handle_connection(client, address, player_object):
 				break
 			
 			elif message == "CLIENT_PACKET":
-				game_packet = client.recv(RECEIVE_SIZE).decode()[1:-1].split(',')
-				'''
-				game_packet is a string in the form {TIME_DELTA, CORRECT}
-				doing [1:-1] returns a slice of the string from the first character to the last character and doing str.split(',') splits the string using "," as a delimiter
-				game_packet[0] contains TIME_DELTA
-				game_packet[1] contains CORRECT
-				'''
-				print(f"{game_packet[0]}\n{game_packet[1]}")
+				game_packet = client.recv(RECEIVE_SIZE).decode()
+				
+				# game_packet is a tuple in the form (TIME_DELTA, CORRECT)
+				
+				if DEBUG:
+					print(f"{game_packet[0]}\n{game_packet[1]}")
 				
 				if int(game_packet[1]):
 					player_object.add_time(game_packet[0])
 					player_object.add_correct()
 
 			elif message == "END":
-				players = sorted(players, key = lambda player: player.num_correct / player.total_time, reverse = True)
 				leaderboard = gen_leaderboard()
-
+				leaderboard_bytes = pickle.dumps(leaderboard)
 				
-				if MAX_CONNECTIONS < 5:
-					for i in range(len(players)):
-						leaderboard.add()
+				if DEBUG:
+					print(leaderboard_bytes)
 
+				client.send(leaderboard_bytes)
 
 			elif message == "VERIFY":
 				client.send(CHECKSUM.encode())
 			
 			elif message == "SET_NAME":
-				requested_name = client.recv(RECIEVE_SIZE).decode()[1:-1]
-				
+				requested_name = client.recv(RECEIVE_SIZE).decode()
+				print(f"Client {address} requested name {requested_name}.")
+
 				with lock:
 					if requested_name in names:
 						client.send("NAME_UNAVAILABLE".encode())
@@ -138,8 +149,17 @@ def handle_connection(client, address, player_object):
 				player_object.set_name(requested_name)
 			
 			elif message == "REQUEST_WORD_PAYLOAD":
-				client.send(f"WORD_PAYLOAD").encode()
-				client.send(f"{str(word_set)[1:-1]}").encode()
+				word_list_bytes = pickle.dumps(word_list)
+
+				if DEBUG:
+					print(word_list_bytes)
+				
+				client.send(word_list_bytes)
+			
+			elif message == "READY":
+				with lock:
+					global ready
+					ready += 1
 			
 			elif start == True:
 				client.send("START".encode())
@@ -166,7 +186,9 @@ def count_lines():
 		with open(DICTIONARY_PATH, "r") as dictionary:
 			for line in dictionary:
 				lines += 1
-				print(lines, line, end="")
+
+				if DEBUG:
+					print(lines, line, end="")
 	except FileNotFoundError:
 		print("DICTIONARY_PATH does not point to an existing file. Try changing it.")
 		exit()
@@ -176,8 +198,8 @@ def count_lines():
 	return lines
 
 
-def generate_word_set(lines):
-	result = set()
+def generate_word_list(lines):
+	result = []
 	
 	while len(result) < WORD_SET_LENGTH:
 		random_number = randint(1, lines)
@@ -185,15 +207,12 @@ def generate_word_set(lines):
 		# linecache has to be used to get a random line from a file, inclusive of the \n character, [:-1] slices the trailing \n off
 		word = linecache.getline(DICTIONARY_PATH, random_number)[:-1]
 
-		if word in result:
-			continue
-		
 		if random_number % 3 and random_number % 5:
-			result.add(word.upper())
+			result.append(word.upper())
 		elif random_number % 13 == 0:
-			result.add(word.capitalize())
+			result.append(word.capitalize())
 		else:
-			result.add(word)
+			result.append(word)
 
 	return result
 
@@ -214,9 +233,11 @@ def main():
 		print("WORD_SET_LENGTH greater than the size of the dictionary file provided, try lowering WORD_SET_LENGTH")
 		exit()
 	
-	word_set = generate_word_set(lines)
+	word_list = generate_word_list(lines)
 	print(f"Word set of length {WORD_SET_LENGTH} successfully generated")
-	print(f"{word_set}")
+	
+	if DEBUG:
+		print(f"{word_list}")
 
 
 	try:
@@ -231,7 +252,7 @@ def main():
 		sock.bind(("0.0.0.0", PORT))
 		
 		# Start listening on socket sock, with a limit on the maximum number of connections specified in MAX_CONNECTIONS
-		sock.listen(MAX_CONNECTIONS)	
+		sock.listen(MAX_CONNECTIONS)
 		print(f"Listening on port {PORT}")
 		
 		
@@ -242,8 +263,9 @@ def main():
 			client, address = sock.accept()
 			print(f"Accepted connection from {address}")
 			
-			new_player_object = player
+			new_player_object = player()
 			players.append(new_player_object)
+			
 			# Creates a new thread and calls handle_connection() with arguements client, address we got from socket.accept()
 			# This is not accurate at all but just think of it as assigning one core out of many from your CPU to execute this function
 			new_thread = threading.Thread(target = handle_connection, args=(client, address, new_player_object))
@@ -254,14 +276,19 @@ def main():
 			connected += 1
 			print(f"{MAX_CONNECTIONS - connected} players remaining before game starts")
 		
-		print("MAX_CONNECTIONS reached, starting game")
-		start = True
+		print("MAX_CONNECTIONS reached")
+		
+		while ready < MAX_CONNECTIONS:
+			sleep(0.1)
 
+		print("All players ready, starting game.")
+		start = True
+		
 		# Wait for all threads to complete
 		for thread in threads:
 			thread.join()
-
-	except Exception as e:  
+	
+	except Exception as e:
 		print(f"Caught: {e}")
 		exit()
 	
