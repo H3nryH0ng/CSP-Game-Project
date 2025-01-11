@@ -97,8 +97,9 @@ def main():
 			
 			if starter == "START":
 				server.send("REQUEST_WORD_PAYLOAD".encode())
-			
-			# Expect WORD_PAYLOAD and exit wait loop - For Francis
+				
+				# Expect WORD_PAYLOAD and exit wait loop - For Francis
+
 
 			sleep(0.1)
 

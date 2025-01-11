@@ -1,5 +1,7 @@
 Keywords that the client and server can use to communicate, we just have to compare the string we receive to determine what we send, subject to change
 NOTE: ONLY protocol keywords are uppercase
+NOTE: we're sending and receiving the python objects using pickle.dumps() and pickle.loads()
+
 
 START
 Server sends START to start a round
