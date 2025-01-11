@@ -108,6 +108,9 @@ def main():
 		else:
 			server.send(to_send.encode())
 		# TODO: Show leaderboard after player completes the list 4
+		server.send("END".encode())
+		leaderboard = server.recv(RECEIVE_SIZE).decode()
+		print(leaderboard)
 		# TODO: After prompt the user if they want to exit or play another round after the previous round finishes 9
 		
 		#M MSG from server used to print here
