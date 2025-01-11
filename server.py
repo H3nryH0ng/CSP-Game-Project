@@ -31,6 +31,7 @@ class player():
 		self.username = ""
 		self.current_combo = 0
 		self.score = 0
+		self.placement = -1
 	
 	def add_time(self, time_delta):
 		self.total_time += time_delta
@@ -46,10 +47,10 @@ class player():
 
 	def reset_combo(self):
 		self.current_combo = 0
-	
+  
 	def calculate_score(self, time_delta):
-		if time_delta < 750:
-			self.score += (1000 + 1000 - (time_delta / 4)) + self.current_combo * 300
+		if time_delta < 1500:
+			self.score += (1100 - (time_delta * 2 // 3)) + self.current_combo * 300
 		else:
 			self.score += 100 + self.current_combo * 300
 
@@ -66,6 +67,7 @@ def gen_leaderboard():
 	else:
 		for i in range(5):
 			result.append((current_leaderboard[i].username, current_leaderboard[i].score))
+		# Imma add another function to sent the player own placement if they are not top 10 ~ Francis	
 	
 	if DEBUG:
 		print(result)
@@ -160,6 +162,7 @@ def handle_connection(client, address, player_object):
 				if DEBUG:
 					print(word_list_bytes)
 				
+				client.send("WORD_PAYLOAD".encode())
 				client.send(word_list_bytes)
 			
 			elif message == "READY":
@@ -297,9 +300,6 @@ def main():
 	except Exception as e:
 		print(f"Caught: {e}")
 		exit()
-	
-
-
 
 # calls the main function
 main()
