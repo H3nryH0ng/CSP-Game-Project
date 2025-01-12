@@ -23,13 +23,12 @@ NAME_OK
 Server sends to clients if name is accepted
 
 
-CLIENT_PACKET (TIME_DELTA, CORRECT)
+CLIENT_PACKET	TIME_DELTA
 Client sends this to the server every time a player submits a word,
 
-TIME_DELTA is the difference between when the player receives the prompt and when they submit in milliseconds
-CORRECT shows whether the player got the word correct, is an either 1, or 0, will be casted to an int on the server side
+TIME_DELTA is the difference between when the player receives the prompt and when they submit in milliseconds, if TIME_DELTA == -1, the player broke combo.
 
-Sent in two parts, TIME_DELTA and CORRECT as a python tuple
+Sent in two parts, everytime the player submits
 
 
 FF
@@ -51,3 +50,7 @@ Sent to the client before the server if the server was terminated in a controlle
 
 READY
 Client sends to the server after username is set to show that it's waiting. Sending START will start the client.
+
+
+TEMP_SET_RECEIVE_SIZE	SIZE
+The word list object sent to the client may be larger than RECEIVE_SIZE, the server would send the client TEMP_SET_RECEIVE_SIZE and then SIZE as an INT object, TEMP_SET_RECEIVE_SIZE should then be used in the following recv() call to fetch the entire object.
