@@ -9,7 +9,7 @@ import pickle
 MAX_CONNECTIONS = 1
 PORT = 6969
 DICTIONARY_PATH = "test.txt"
-WORD_SET_LENGTH = 100
+WORD_SET_LENGTH = 10
 
 
 # Named constants go here
@@ -25,6 +25,7 @@ players = []
 word_list = []
 start = False
 ready = 0
+flag = 0
 
 class player():
 	def __init__(self):
@@ -81,6 +82,8 @@ client is a client socket to the client, which is what we use to send data to it
 address contains the ip address and the port of the client
 '''
 def handle_connection(client, address, player_object):
+	triggered_once = 0
+
 	# For debugging purposes only
 	if DEBUG:
 		print(f"{client}")
@@ -96,6 +99,7 @@ def handle_connection(client, address, player_object):
 			.decode is a method we use to decode the raw bytes to a string
 			socket.recv is a blocking call meaning execution will stop here until there's more data to read
 			'''
+			# this is blocking
 			message = client.recv(RECEIVE_SIZE).decode()
 
 			'''
@@ -160,6 +164,8 @@ def handle_connection(client, address, player_object):
 				word_list_bytes = pickle.dumps(word_list)
 
 				if DEBUG:
+					print(f"{address} requested word payload")
+					print(type(word_list_bytes))
 					print(word_list_bytes)
 				
 				client.send("WORD_PAYLOAD".encode())
@@ -169,10 +175,12 @@ def handle_connection(client, address, player_object):
 				with lock:
 					global ready
 					ready += 1
-			
-			elif start == True:
-				client.send("START".encode())
+				
+				# After the above the server would be waiting for the client's message by calling recv originally
+				while ready != MAX_CONNECTIONS:
+					sleep(0.1)
 
+				client.send("START".encode())
 			else:
 				print(f"{message}")
 				'''
@@ -182,6 +190,9 @@ def handle_connection(client, address, player_object):
 				same goes for receiving messages as well
 				'''
 				client.send("men".upper().encode())
+			
+			if DEBUG:
+				print(f"Connection thread handler for client {address} alive.")
 
 	except Exception as e:
 		print(f"Caught: {e}")
@@ -291,12 +302,11 @@ def main():
 			sleep(0.1)
 
 		print("All players ready, starting game.")
-		start = True
 		
 		# Wait for all threads to complete
 		for thread in threads:
 			thread.join()
-	
+		
 	except Exception as e:
 		print(f"Caught: {e}")
 		exit()
