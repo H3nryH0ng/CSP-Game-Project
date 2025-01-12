@@ -1,9 +1,12 @@
 import threading
 import socket
 import linecache
+import pickle
+
 from random import randint
 from time import sleep
-import pickle
+from sys import getsizeof
+
 
 # Constant configuration variables go here, use ALL CAPS to indicate constant
 MAX_CONNECTIONS = 1
@@ -17,15 +20,17 @@ RECEIVE_SIZE = 4096
 CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
 DEBUG = 1
 
+
 # Global variables go here
 names = set()
 lock = threading.Lock()
 threads = []
 players = []
 word_list = []
-start = False
+word_list_bytes = b""
+word_list_bytes_size = 0
 ready = 0
-flag = 0
+
 
 class player():
 	def __init__(self):
@@ -48,7 +53,7 @@ class player():
 
 	def reset_combo(self):
 		self.current_combo = 0
-  
+
 	def calculate_score(self, time_delta):
 		if time_delta < 1500:
 			self.score += (1100 - (time_delta * 2 // 3)) + self.current_combo * 300
@@ -82,8 +87,6 @@ client is a client socket to the client, which is what we use to send data to it
 address contains the ip address and the port of the client
 '''
 def handle_connection(client, address, player_object):
-	triggered_once = 0
-
 	# For debugging purposes only
 	if DEBUG:
 		print(f"{client}")
@@ -99,7 +102,6 @@ def handle_connection(client, address, player_object):
 			.decode is a method we use to decode the raw bytes to a string
 			socket.recv is a blocking call meaning execution will stop here until there's more data to read
 			'''
-			# this is blocking
 			message = client.recv(RECEIVE_SIZE).decode()
 
 			'''
@@ -126,7 +128,6 @@ def handle_connection(client, address, player_object):
 			elif message == "CLIENT_PACKET":
 				game_packet = client.recv(RECEIVE_SIZE).decode()
 				
-				# game_packet is a tuple in the form (TIME_DELTA, CORRECT)
 				
 				if DEBUG:
 					print(f"{game_packet[0]}\n{game_packet[1]}")
@@ -161,10 +162,13 @@ def handle_connection(client, address, player_object):
 				player_object.set_name(requested_name)
 			
 			elif message == "REQUEST_WORD_PAYLOAD":
-				word_list_bytes = pickle.dumps(word_list)
+				print(f"{address} requested word payload")
+
+				client.send("TEMP_SET_RECEIVE_SIZE")
+				client.send(pickle.dumps(word_list_bytes_size))
 
 				if DEBUG:
-					print(f"{address} requested word payload")
+					print(f"{word_list}")
 					print(type(word_list_bytes))
 					print(word_list_bytes)
 				
@@ -176,7 +180,7 @@ def handle_connection(client, address, player_object):
 					global ready
 					ready += 1
 				
-				# After the above the server would be waiting for the client's message by calling recv originally
+				# After the above the server would be waiting for the client's message by calling recv originally, took me hours to figure it out.
 				while ready != MAX_CONNECTIONS:
 					sleep(0.1)
 
@@ -237,6 +241,16 @@ def generate_word_list(lines):
 	return result
 
 
+def pickle_list(list_object):
+	result = pickle.dumps(list_object)
+	size = getsizeof(result) + 16
+	
+	if DEBUG:
+		print(result, size)
+	
+	return (result, size)
+
+
 #Entry point here
 def main():
 	if PORT < 1024 or PORT > 65353:
@@ -253,12 +267,16 @@ def main():
 		print("WORD_SET_LENGTH greater than the size of the dictionary file provided, try lowering WORD_SET_LENGTH")
 		exit()
 	
+	global word_list
 	word_list = generate_word_list(lines)
 	print(f"Word set of length {WORD_SET_LENGTH} successfully generated")
 	
 	if DEBUG:
 		print(f"{word_list}")
-
+	
+	global word_list_bytes
+	global word_list_bytes_size
+	word_list_bytes, word_list_bytes_size = pickle_list(word_list)
 
 	try:
 		'''

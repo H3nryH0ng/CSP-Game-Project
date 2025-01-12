@@ -3,6 +3,7 @@ from time import sleep
 import pickle
 from collections import deque
 
+
 # Constant configuration variables go here, use ALL CAPS to indicate constant
 
 
@@ -10,7 +11,7 @@ from collections import deque
 # Named constants go here
 RECEIVE_SIZE = 4096
 CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
-
+DEBUG = 1
 
 # Global variables go here
 
@@ -91,19 +92,27 @@ def main():
 		server.send("READY".encode())
 		print("Waiting for Players")
 
-		while True:
-			starter = server.recv(RECEIVE_SIZE).decode()
+		starter = server.recv(RECEIVE_SIZE).decode()
+		
+		if starter == "START":
+			server.send("REQUEST_WORD_PAYLOAD".encode())
 			
-			if starter == "START":
-				server.send("REQUEST_WORD_PAYLOAD".encode())
-				
-				# Expect WORD_PAYLOAD and exit wait loop - For Francis
-			if starter == "WORD_PAYLOAD":
-				word_list_byte = server.recv(RECEIVE_SIZE)
-				word_list = pickle.load(word_list_byte)
-				break
+		
+		# Expect WORD_PAYLOAD - For Francis
+		server_word_payload_trigger = server.recv(RECEIVE_SIZE).decode()
 
-			sleep(0.1)
+		if server_word_payload_trigger == "WORD_PAYLOAD":
+			word_list_byte = server.recv(RECEIVE_SIZE)
+			if DEBUG:
+				print(word_list_byte)
+			
+			# TODO: when the bytes we're sending are larger than RECEIVE_SIZE, we'll get a _pickle.UnpicklingError: pickle data was truncated error. See TEMP_SET_RECEIVE_SIZE in proposed_protocol - For Francis
+			
+			word_list = pickle.loads(word_list_byte)
+			if DEBUG:
+				print(word_list)
+			
+			
 
 
 		# TODO: Actually implement the game itself, once the game starts we need to get data from the server, parse it, get input from the user, send it to the server 3
