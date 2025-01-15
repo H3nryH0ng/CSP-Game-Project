@@ -169,6 +169,9 @@ def main():
 				else:
 					delta = -1
     
+				delta_byte = pickle.dumps(delta)
+				server.send(delta_byte)
+    
 				print('')
 		else:
 			print("No word list receive, please check on server side")
