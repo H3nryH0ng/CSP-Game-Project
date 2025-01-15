@@ -11,7 +11,7 @@ from collections import deque
 # Named constants go here
 RECEIVE_SIZE = 4096
 CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
-DEBUG = 1
+DEBUG = 0
 
 # Global variables go here
 
@@ -22,6 +22,13 @@ DEBUG = 1
 
 # NOTE: Always capitalise protocol messages before encoding and sending to server to avoid "apple" and "Apple" being different, there's an example of how to send and receive messages in the server.py
 # this only applies to protocol messages, the word list sent will still be case sensitive.
+
+# Use when your computer doesn't want to deccode 0x80
+def preventUnicodeError(recv, server):
+	try:
+		recv = server.recv(RECEIVE_SIZE).decode()
+	except UnicodeEncodeError:
+		print(recv)
 
 # Entry point here
 def main():
@@ -101,12 +108,12 @@ def main():
 		# Expect WORD_PAYLOAD - For Francis
 		word_list = []
 		server_word_size_trigger = server.recv(RECEIVE_SIZE).decode()
-  
+
 		if server_word_size_trigger == "TEMP_SET_RECEIVE_SIZE":
 			temp_receive_size_byte = server.recv(RECEIVE_SIZE)
 			temp_receive_size = pickle.loads(temp_receive_size_byte)
    
-			server_word_payload_trigger = server.recv(RECEIVE_SIZE).decode() 
+			server_word_payload_trigger = server.recv(RECEIVE_SIZE).decode()
    
 			if server_word_payload_trigger == "WORD_PAYLOAD":
 				word_list_byte = server.recv(temp_receive_size)
