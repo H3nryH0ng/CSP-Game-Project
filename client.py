@@ -99,12 +99,15 @@ def main():
 			
 		
 		# Expect WORD_PAYLOAD - For Francis
+		word_list = []
 		server_word_size_trigger = server.recv(RECEIVE_SIZE).decode()
-
+  
 		if server_word_size_trigger == "TEMP_SET_RECEIVE_SIZE":
-			temp_receive_size = server.recv(RECEIVE_SIZE)
-      
+			temp_receive_size_byte = server.recv(RECEIVE_SIZE)
+			temp_receive_size = pickle.loads(temp_receive_size_byte)
+   
 			server_word_payload_trigger = server.recv(RECEIVE_SIZE).decode() 
+   
 			if server_word_payload_trigger == "WORD_PAYLOAD":
 				word_list_byte = server.recv(temp_receive_size)
 				if DEBUG:
@@ -124,34 +127,37 @@ def main():
 		next_list = deque([])
 
 		# List of next 5 words
-		if len(word_list) > 5:
-			for i in range(1,6):
-				next_list.append(word_list[i])
+		if len(word_list) != 0:
+			if len(word_list) > 5:
+				for i in range(1,6):
+					next_list.append(word_list[i])
+			else:
+				next_list = deque(word_list)
+				next_list.popleft()
+				
+			# Start typing
+			for n in range(len(word_list)):
+				print(word_list[n]) # Show word to print
+				
+				print('Next: ', end='') # Show next 5 words
+				for word in next_list:
+					print(word, end='')
+					if word != next_list[-1]:
+						print(', ', end='')
+				print('')
+
+				# Create a list with the next 5 words
+				if n < (len(word_list) - 6):
+					next_list.popleft()
+					next_list.append(word_list[n+6])
+				elif len(next_list) != 0:
+					next_list.popleft()
+				
+				player_input = input('')
+				print('')
 		else:
-			next_list = deque(word_list)
-			next_list.popleft()
-			
-		# Start typing
-		for n in range(len(word_list)):
-			print(word_list[n]) # Show word to print
-			
-			print('Next: ', end='') # Show next 5 words
-			for word in next_list:
-				print(word, end='')
-				if word != next_list[-1]:
-					print(', ', end='')
-			print('')
-
-			# Create a list with the next 5 words
-			if n < (len(word_list) - 6):
-				next_list.popleft()
-				next_list.append(word_list[n+6])
-			elif len(next_list) != 0:
-				next_list.popleft()
-			
-			player_input = input('')
-			print('')
-
+			print("No word list receive, please check on server side")
+      
 		# TODO: Clear the terminal first before printing each new prompt 5
 		# TODO: Show leaderboard after player completes the list 4
 		# TODO: After prompt the user if they want to exit or play another round after the previous round finishes 9
