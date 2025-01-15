@@ -161,11 +161,12 @@ def handle_connection(client, address, player_object):
 				
 				player_object.set_name(requested_name)
 			
+			elif message == "REQUEST_TEMP_RECEIVE_SIZE":
+				client.send("TEMP_RECEIVE_SIZE".encode())
+				client.send(pickle.dumps(word_list_bytes_size))
+
 			elif message == "REQUEST_WORD_PAYLOAD":
 				print(f"{address} requested word payload")
-
-				client.send("TEMP_SET_RECEIVE_SIZE".encode())
-				client.send(pickle.dumps(word_list_bytes_size))
 
 				if DEBUG:
 					print(f"{word_list}")

@@ -52,5 +52,5 @@ READY
 Client sends to the server after username is set to show that it's waiting. Sending START will start the client.
 
 
-TEMP_SET_RECEIVE_SIZE	SIZE
-The word list object sent to the client may be larger than RECEIVE_SIZE, the server would send the client TEMP_SET_RECEIVE_SIZE and then SIZE as an INT object, TEMP_SET_RECEIVE_SIZE should then be used in the following recv() call to fetch the entire object.
+REQUEST_TEMP_RECEIVE_SIZE	SIZE
+The word list object sent to the client may be larger than RECEIVE_SIZE, the server would send the client TEMP_RECEIVE_SIZE and then SIZE as an INT object, TEMP_SET_RECEIVE_SIZE should then be used in the following recv() call to fetch the entire object.

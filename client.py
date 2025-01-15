@@ -14,7 +14,7 @@ CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
 DEBUG = 0
 
 # Global variables go here
-
+word_list = []
 
 
 
@@ -23,12 +23,6 @@ DEBUG = 0
 # NOTE: Always capitalise protocol messages before encoding and sending to server to avoid "apple" and "Apple" being different, there's an example of how to send and receive messages in the server.py
 # this only applies to protocol messages, the word list sent will still be case sensitive.
 
-# Use when your computer doesn't want to deccode 0x80
-def preventUnicodeError(recv, server):
-	try:
-		recv = server.recv(RECEIVE_SIZE).decode()
-	except UnicodeEncodeError:
-		print(recv)
 
 # Entry point here
 def main():
@@ -102,31 +96,27 @@ def main():
 		starter = server.recv(RECEIVE_SIZE).decode()
 		
 		if starter == "START":
-			server.send("REQUEST_WORD_PAYLOAD".encode())
-			
-		
-		# Expect WORD_PAYLOAD - For Francis
-		word_list = []
-		server_word_size_trigger = server.recv(RECEIVE_SIZE).decode()
+			server.send("REQUEST_TEMP_RECEIVE_SIZE".encode())
 
-		if server_word_size_trigger == "TEMP_SET_RECEIVE_SIZE":
-			temp_receive_size_byte = server.recv(RECEIVE_SIZE)
-			temp_receive_size = pickle.loads(temp_receive_size_byte)
-   
-			server_word_payload_trigger = server.recv(RECEIVE_SIZE).decode()
-   
-			if server_word_payload_trigger == "WORD_PAYLOAD":
-				word_list_byte = server.recv(temp_receive_size)
-				if DEBUG:
-					print(word_list_byte)
-				
-				# TODO: when the bytes we're sending are larger than RECEIVE_SIZE, we'll get a _pickle.UnpicklingError: pickle data was truncated error. See TEMP_SET_RECEIVE_SIZE in proposed_protocol - For Francis
-				
-				word_list = pickle.loads(word_list_byte)
-				if DEBUG:
-					print(word_list)
+
+		response = server.recv(RECEIVE_SIZE).decode()
+		if response == "TEMP_RECEIVE_SIZE":
+			temp_receive_size_bytes = server.recv(RECEIVE_SIZE)
+			temp_receive_size = pickle.loads(temp_receive_size_bytes)
+
+		server.send("REQUEST_WORD_PAYLOAD".encode())
+		response = server.recv(RECEIVE_SIZE).decode()
+		if response == "WORD_PAYLOAD":
+			word_list_bytes = server.recv(temp_receive_size)
 			
-			
+			if DEBUG:
+				print(word_list_bytes)
+
+			global word_list
+			word_list = pickle.loads(word_list_bytes)
+
+			if DEBUG:
+				print(word_list)
 
 
 		# TODO: Actually implement the game itself, once the game starts we need to get data from the server, parse it, get input from the user, send it to the server 3
