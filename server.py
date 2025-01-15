@@ -28,7 +28,7 @@ threads = []
 players = []
 word_list = []
 word_list_bytes = b""
-word_list_bytes_size = 0
+word_list_bytes_size = int(0)
 ready = 0
 
 
@@ -164,7 +164,7 @@ def handle_connection(client, address, player_object):
 			elif message == "REQUEST_WORD_PAYLOAD":
 				print(f"{address} requested word payload")
 
-				client.send("TEMP_SET_RECEIVE_SIZE")
+				client.send("TEMP_SET_RECEIVE_SIZE".encode())
 				client.send(pickle.dumps(word_list_bytes_size))
 
 				if DEBUG:
