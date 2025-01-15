@@ -99,18 +99,22 @@ def main():
 			
 		
 		# Expect WORD_PAYLOAD - For Francis
-		server_word_payload_trigger = server.recv(RECEIVE_SIZE).decode()
+		server_word_size_trigger = server.recv(RECEIVE_SIZE).decode()
 
-		if server_word_payload_trigger == "WORD_PAYLOAD":
-			word_list_byte = server.recv(RECEIVE_SIZE)
-			if DEBUG:
-				print(word_list_byte)
-			
-			# TODO: when the bytes we're sending are larger than RECEIVE_SIZE, we'll get a _pickle.UnpicklingError: pickle data was truncated error. See TEMP_SET_RECEIVE_SIZE in proposed_protocol - For Francis
-			
-			word_list = pickle.loads(word_list_byte)
-			if DEBUG:
-				print(word_list)
+		if server_word_size_trigger == "TEMP_SET_RECEIVE_SIZE":
+			temp_receive_size = server.recv(RECEIVE_SIZE)
+      
+			server_word_payload_trigger = server.recv(RECEIVE_SIZE).decode() 
+			if server_word_payload_trigger == "WORD_PAYLOAD":
+				word_list_byte = server.recv(temp_receive_size)
+				if DEBUG:
+					print(word_list_byte)
+				
+				# TODO: when the bytes we're sending are larger than RECEIVE_SIZE, we'll get a _pickle.UnpicklingError: pickle data was truncated error. See TEMP_SET_RECEIVE_SIZE in proposed_protocol - For Francis
+				
+				word_list = pickle.loads(word_list_byte)
+				if DEBUG:
+					print(word_list)
 			
 			
 
