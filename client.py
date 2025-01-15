@@ -2,7 +2,7 @@ import socket
 from time import sleep
 import pickle
 from collections import deque
-
+import datetime
 
 # Constant configuration variables go here, use ALL CAPS to indicate constant
 
@@ -142,7 +142,7 @@ def main():
 				next_list = deque(word_list)
 				next_list.popleft()
 				
-			# Start typing
+			# Game start here
 			for n in range(len(word_list)):
 				print(word_list[n]) # Show word to print
 				
@@ -160,7 +160,15 @@ def main():
 				elif len(next_list) != 0:
 					next_list.popleft()
 				
-				player_input = input('')
+				time_start = datetime.datetime.now()
+				player_input = input()
+				time_end = datetime.datetime.now()
+    
+				if player_input == word_list[n]:
+					delta = ((time_start - time_end).total_seconds())*1000
+				else:
+					delta = -1
+    
 				print('')
 		else:
 			print("No word list receive, please check on server side")
