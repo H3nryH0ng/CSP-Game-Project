@@ -39,15 +39,9 @@ class player():
 		self.score = 0
 		self.placement = -1
 	
-	def add_time(self, time_delta):
-		self.total_time += time_delta
-	
 	def set_name(self, requested_username):
 		self.username = requested_username
 	
-	def add_correct(self):
-		self.num_correct += 1
-
 	def add_combo(self):
 		self.current_combo += 1
 
@@ -126,15 +120,20 @@ def handle_connection(client, address, player_object):
 				break
 			
 			elif message == "CLIENT_PACKET":
-				game_packet = client.recv(RECEIVE_SIZE).decode()
-				
+				delta_bytes = client.recv(RECEIVE_SIZE)
+				delta = pickle.loads(delta_bytes)
 				
 				if DEBUG:
-					print(f"{game_packet[0]}\n{game_packet[1]}")
+					print(f"{delta}")
 				
-				if int(game_packet[1]):
-					player_object.add_time(game_packet[0])
-					player_object.add_correct()
+				if delta == -1:
+					player_object.reset_combo()
+				else:
+					player_object.add_combo()
+					player_object.calculate_score(delta)
+
+				if DEBUG:
+					print(player_object.score, player_object.username, player_object.current_combo)
 
 			elif message == "END":
 				leaderboard = gen_leaderboard()

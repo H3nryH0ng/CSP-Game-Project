@@ -150,6 +150,8 @@ def main():
 				elif len(next_list) != 0:
 					next_list.popleft()
 				
+				server.send("CLIENT_PACKET".encode())
+				
 				time_start = datetime.datetime.now()
 				player_input = input()
 				time_end = datetime.datetime.now()
@@ -158,8 +160,10 @@ def main():
 					delta = int(((time_end - time_start).total_seconds())*1000)
 				else:
 					delta = -1
-				print(type(delta), delta)
-				server.send("CLIENT_PACKET".encode())
+
+				if DEBUG:
+					print(type(delta), delta)
+				
 				delta_byte = pickle.dumps(delta)
 				server.send(delta_byte)
     
