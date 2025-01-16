@@ -57,7 +57,7 @@ def main():
 		
 		# TODO: Check if we connected to an instance of the game server or just a random server, CHECKSUM is defined globally, if we send VERIFY and CHECKSUM doesn't match, give a meaningful message then exit 1
 		
-		server.send("VERIFY".encode())
+		server.sendall("VERIFY".encode())
 		verifier = server.recv(RECEIVE_SIZE).decode()
 
 	
@@ -71,8 +71,8 @@ def main():
 		while True:
 			name_request = str(input("Name?"))
 
-			server.send("SET_NAME".encode())
-			server.send(f"{name_request}".encode())
+			server.sendall("SET_NAME".encode())
+			server.sendall(f"{name_request}".encode())
 			
 			print(f"Requesting name set to {name_request}")
    
@@ -90,13 +90,13 @@ def main():
 
 
 		# TODO: Don't start the game and show a waiting prompt until all players are connected 2
-		server.send("READY".encode())
+		server.sendall("READY".encode())
 		print("Waiting for Players")
 
 		starter = server.recv(RECEIVE_SIZE).decode()
 		
 		if starter == "START":
-			server.send("REQUEST_TEMP_RECEIVE_SIZE".encode())
+			server.sendall("REQUEST_TEMP_RECEIVE_SIZE".encode())
 
 
 		response = server.recv(RECEIVE_SIZE).decode()
@@ -104,7 +104,7 @@ def main():
 			temp_receive_size_bytes = server.recv(RECEIVE_SIZE)
 			temp_receive_size = pickle.loads(temp_receive_size_bytes)
 
-		server.send("REQUEST_WORD_PAYLOAD".encode())
+		server.sendall("REQUEST_WORD_PAYLOAD".encode())
 		response = server.recv(RECEIVE_SIZE).decode()
 		if response == "WORD_PAYLOAD":
 			word_list_bytes = server.recv(temp_receive_size)
@@ -135,7 +135,7 @@ def main():
 				
 			# Game start here
 			for n in range(len(word_list)):
-				server.send("CLIENT_PACKET".encode())
+				server.sendall("CLIENT_PACKET".encode())
 				print(word_list[n]) # Show word to print
 				
 				print('Next: ', end='') # Show next 5 words
@@ -168,7 +168,7 @@ def main():
 					print(type(delta), delta)
 				
 				delta_byte = pickle.dumps(delta)
-				server.send(delta_byte)
+				server.sendall(delta_byte)
 				sleep(0.1) # This delay is here to stop the server from being overwhelmed with packets
 				
 				print('')

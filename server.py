@@ -12,7 +12,7 @@ from sys import getsizeof
 MAX_CONNECTIONS = 1
 PORT = 6969
 DICTIONARY_PATH = "test.txt"
-WORD_SET_LENGTH = 10
+WORD_SET_LENGTH = 100
 
 
 # Named constants go here
@@ -142,10 +142,10 @@ def handle_connection(client, address, player_object):
 				if DEBUG:
 					print(leaderboard_bytes)
 
-				client.send(leaderboard_bytes)
+				client.sendall(leaderboard_bytes)
 
 			elif message == "VERIFY":
-				client.send(CHECKSUM.encode())
+				client.sendall(CHECKSUM.encode())
 			
 			elif message == "SET_NAME":
 				requested_name = client.recv(RECEIVE_SIZE).decode()
@@ -153,16 +153,16 @@ def handle_connection(client, address, player_object):
 
 				with lock:
 					if requested_name in names:
-						client.send("NAME_UNAVAILABLE".encode())
+						client.sendall("NAME_UNAVAILABLE".encode())
 					else:
-						client.send("NAME_OK".encode())
+						client.sendall("NAME_OK".encode())
 						names.add(requested_name)
 				
 				player_object.set_name(requested_name)
 			
 			elif message == "REQUEST_TEMP_RECEIVE_SIZE":
-				client.send("TEMP_RECEIVE_SIZE".encode())
-				client.send(pickle.dumps(word_list_bytes_size))
+				client.sendall("TEMP_RECEIVE_SIZE".encode())
+				client.sendall(pickle.dumps(word_list_bytes_size))
 
 			elif message == "REQUEST_WORD_PAYLOAD":
 				print(f"{address} requested word payload")
@@ -172,8 +172,8 @@ def handle_connection(client, address, player_object):
 					print(type(word_list_bytes))
 					print(word_list_bytes)
 				
-				client.send("WORD_PAYLOAD".encode())
-				client.send(word_list_bytes)
+				client.sendall("WORD_PAYLOAD".encode())
+				client.sendall(word_list_bytes)
 			
 			elif message == "READY":
 				with lock:
@@ -184,16 +184,16 @@ def handle_connection(client, address, player_object):
 				while ready != MAX_CONNECTIONS:
 					sleep(0.1)
 
-				client.send("START".encode())
+				client.sendall("START".encode())
 			else:
 				print(f"{message}")
 				'''
 				example of how to send data through a socket, "men" is a python string object, not just the characters m,e, and n
 				str.encode() encodes the string in UTF-8 and returns the byte representation of it back which is what we want to send
-				client.send("men") will try to send a python object
+				client.sendall("men") will try to send a python object
 				same goes for receiving messages as well
 				'''
-				client.send("men".upper().encode())
+				client.sendall("men".upper().encode())
 			
 			if DEBUG:
 				print(f"Connection thread handler for client {address} alive.")
