@@ -155,10 +155,11 @@ def main():
 				time_end = datetime.datetime.now()
     
 				if player_input == word_list[n]:
-					delta = ((time_start - time_end).total_seconds())*1000
+					delta = int(((time_end - time_start).total_seconds())*1000)
 				else:
 					delta = -1
-    
+				print(type(delta), delta)
+				server.send("CLIENT_PACKET".encode())
 				delta_byte = pickle.dumps(delta)
 				server.send(delta_byte)
     
