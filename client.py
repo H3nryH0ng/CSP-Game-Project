@@ -125,6 +125,7 @@ def main():
 
 		# List of next 5 words
 		if len(word_list) != 0:
+
 			if len(word_list) > 5:
 				for i in range(1,6):
 					next_list.append(word_list[i])
@@ -134,9 +135,11 @@ def main():
 				
 			# Game start here
 			for n in range(len(word_list)):
+				server.send("CLIENT_PACKET".encode())
 				print(word_list[n]) # Show word to print
 				
 				print('Next: ', end='') # Show next 5 words
+
 				for word in next_list:
 					print(word, end='')
 					if word != next_list[-1]:
@@ -147,10 +150,10 @@ def main():
 				if n < (len(word_list) - 6):
 					next_list.popleft()
 					next_list.append(word_list[n+6])
+				
 				elif len(next_list) != 0:
 					next_list.popleft()
-				
-				server.send("CLIENT_PACKET".encode())
+							
 				
 				time_start = datetime.datetime.now()
 				player_input = input()
@@ -166,7 +169,8 @@ def main():
 				
 				delta_byte = pickle.dumps(delta)
 				server.send(delta_byte)
-    
+				sleep(0.1) # This delay is here to stop the server from being overwhelmed with packets
+				
 				print('')
 		else:
 			print("No word list receive, please check on server side")
