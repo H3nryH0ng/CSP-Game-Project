@@ -55,7 +55,7 @@ class player():
 			self.score += 100 + self.current_combo * 300
 
 
-def gen_leaderboard():
+def gen_leaderboard(player_object):
 	result = []
 	
 	with lock:
@@ -67,7 +67,10 @@ def gen_leaderboard():
 	else:
 		for i in range(5):
 			result.append((current_leaderboard[i].username, current_leaderboard[i].score))
-		# Imma add another function to sent the player own placement if they are not top 10 ~ Francis	
+   
+		if player_object.username not in [name[0] for name in result]:
+			result.append((current_leaderboard.index(player_object), player_object.username, player_object.score))
+  
 	
 	if DEBUG:
 		print(result)
@@ -136,7 +139,7 @@ def handle_connection(client, address, player_object):
 					print(player_object.score, player_object.username, player_object.current_combo)
 
 			elif message == "END":
-				leaderboard = gen_leaderboard()
+				leaderboard = gen_leaderboard(player_object)
 				leaderboard_bytes = pickle.dumps(leaderboard)
 				
 				if DEBUG:
