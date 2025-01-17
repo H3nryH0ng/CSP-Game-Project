@@ -51,9 +51,9 @@ def print_leaderboard(Ldb):
 			print("")
 			print(f"{name} {score}".center(width))
 
-		print("")
-		rank, name, score = Ldb[5]
-		print(f"You place {rank} with a score of {score}".center(width))
+	print("")
+	rank, name, score = Ldb[5]
+	print(f"You place {rank} with a score of {score}".center(width))
 
 # Entry point here
 def main():
