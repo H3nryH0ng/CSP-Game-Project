@@ -3,6 +3,7 @@ from time import sleep
 import pickle
 from collections import deque
 import datetime
+import os
 
 # Constant configuration variables go here, use ALL CAPS to indicate constant
 
@@ -24,6 +25,35 @@ word_list = []
 # this only applies to protocol messages, the word list sent will still be case sensitive.
 
 
+def print_leaderboard(Ldb):
+
+
+    width, height = os.get_terminal_size()
+
+    if (os.name() == "posix"):
+        os.system('clear')
+    else:
+        os.system('cls')
+
+
+    print("Leaderboard".center(width))
+    print("")
+    print(f"Player Score".center(width))
+    print("")
+
+	length = len(Ldb)
+
+	if length < 5:
+    	for name, score in Ldb:
+    
+        	print("")
+        	print(f"{name} {score}".center(width))
+	else:
+			for i in range(5):
+				name, score == Ldb[i]
+				print("")
+        		print(f"{name} {score}".center(width))
+				
 # Entry point here
 def main():
     # Defined variable
@@ -177,6 +207,14 @@ def main():
       
 		# TODO: Clear the terminal first before printing each new prompt 5
 		# TODO: Show leaderboard after player completes the list 4
+
+
+		server.send("END".encode())
+		Leaderboard = server.recv(RECEIVE_SIZE)
+		Ldb = pickle.load(Leaderboard)
+		while True:
+			print_leaderboard(Ldb)
+			sleep(0.69)
 		# TODO: After prompt the user if they want to exit or play another round after the previous round finishes 9
 
 # Calls the main function
