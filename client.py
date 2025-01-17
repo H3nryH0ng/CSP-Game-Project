@@ -43,7 +43,7 @@ def print_leaderboard(Ldb):
 
 	length = len(Ldb)
 
-	if length < 5:
+	if length <= 5:
     	for name, score in Ldb:
     
         	print("")
