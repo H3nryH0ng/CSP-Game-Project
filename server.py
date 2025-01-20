@@ -137,7 +137,7 @@ def handle_connection(client, address, player_object):
 					print(player_object.score, player_object.username, player_object.current_combo)
 
 			elif message == "END":
-                leaderboard = gen_leaderboard(player_object)
+				leaderboard = gen_leaderboard(player_object)
 				leaderboard_bytes = pickle.dumps(leaderboard)
 				
 				if DEBUG:

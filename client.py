@@ -156,57 +156,56 @@ def main():
 	# Plan to make this a func?
 	next_list = deque([])
 
-	# List of next 5 words
-	if len(word_list) != 0:
-
-		if len(word_list) > 5:
-			for i in range(1,6):
-				next_list.append(word_list[i])
-		else:
-			next_list = deque(word_list)
-			next_list.popleft()
-			
-		# Game start here
-		for n in range(len(word_list)):
-			server.sendall("CLIENT_PACKET".encode())
-			print(word_list[n]) # Show word to print
-			
-			print('Next: ', end='') # Show next 5 words
-
-			for word in next_list:
-				print(word, end='')
-				if word != next_list[-1]:
-					print(', ', end='')
-			print('')
-
-			# Create a list with the next 5 words
-			if n < (len(word_list) - 6):
-				next_list.popleft()
-				next_list.append(word_list[n+6])
-			
-			elif len(next_list) != 0:
-				next_list.popleft()
-						
-			
-			time_start = datetime.datetime.now()
-			player_input = input()
-			time_end = datetime.datetime.now()
-
-			if player_input == word_list[n]:
-				delta = int(((time_end - time_start).total_seconds())*1000)
-			else:
-				delta = -1
-
-			if DEBUG:
-				print(type(delta), delta)
-			
-			delta_byte = pickle.dumps(delta)
-			server.sendall(delta_byte)
-			sleep(0.1) # This delay is here to stop the server from being overwhelmed with packets
-			
-			print('')
-	else:
+	
+	if len(word_list) == 0:
 		print("No word list receive, please check on server side")
+		exit()
+
+	if len(word_list) > 5:
+		for i in range(1,6):
+			next_list.append(word_list[i])
+	else:
+		next_list = deque(word_list)
+		next_list.popleft()
+		
+	# Game start here
+	for n in range(len(word_list)):
+		server.sendall("CLIENT_PACKET".encode())
+		print(word_list[n]) # Show word to print
+		
+		print('Next: ', end='') # Show next 5 words
+
+		for word in next_list:
+			print(word, end='')
+			if word != next_list[-1]:
+				print(', ', end='')
+		print('')
+
+		# Create a list with the next 5 words
+		if n < (len(word_list) - 6):
+			next_list.popleft()
+			next_list.append(word_list[n+6])
+		
+		elif len(next_list) != 0:
+			next_list.popleft()
+		
+		time_start = datetime.datetime.now()
+		player_input = input()
+		time_end = datetime.datetime.now()
+
+		if player_input == word_list[n]:
+			delta = int(((time_end - time_start).total_seconds())*1000)
+		else:
+			delta = -1
+
+		if DEBUG:
+			print(type(delta), delta)
+		
+		delta_byte = pickle.dumps(delta)
+		server.sendall(delta_byte)
+		sleep(0.1) # This delay is here to stop the server from being overwhelmed with packets
+		
+		print('')
   
 	# TODO: Clear the terminal first before printing each new prompt 5
 	# TODO: Show leaderboard after player completes the list 4
