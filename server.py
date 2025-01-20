@@ -12,7 +12,7 @@ from sys import getsizeof
 MAX_CONNECTIONS = 1
 PORT = 6969
 DICTIONARY_PATH = "test.txt"
-WORD_SET_LENGTH = 100
+WORD_SET_LENGTH = 5
 
 
 # Named constants go here
@@ -37,7 +37,6 @@ class player():
 		self.username = ""
 		self.current_combo = 0
 		self.score = 0
-		self.placement = -1
 	
 	def set_name(self, requested_username):
 		self.username = requested_username
@@ -59,7 +58,7 @@ def gen_leaderboard(player_object):
 	result = []
 	
 	with lock:
-		current_leaderboard = sorted(players, key = lambda player: player.score, reversed = True)
+		current_leaderboard = sorted(players, key = lambda player: player.score, reverse = True)
 
 	if MAX_CONNECTIONS < 5:
 		for player in current_leaderboard:
@@ -70,8 +69,7 @@ def gen_leaderboard(player_object):
    
 		if player_object.username not in [name[0] for name in result]:
 			result.append((current_leaderboard.index(player_object), player_object.username, player_object.score))
-  
-	
+
 	if DEBUG:
 		print(result)
 	
@@ -139,7 +137,7 @@ def handle_connection(client, address, player_object):
 					print(player_object.score, player_object.username, player_object.current_combo)
 
 			elif message == "END":
-				leaderboard = gen_leaderboard(player_object)
+                leaderboard = gen_leaderboard(player_object)
 				leaderboard_bytes = pickle.dumps(leaderboard)
 				
 				if DEBUG:

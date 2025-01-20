@@ -12,7 +12,7 @@ import os
 # Named constants go here
 RECEIVE_SIZE = 4096
 CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
-DEBUG = 0
+DEBUG = 1
 
 # Global variables go here
 word_list = []
@@ -28,11 +28,14 @@ word_list = []
 def print_leaderboard(Ldb):
 	width, height = os.get_terminal_size()
 
-	if (os.name() == "posix"):
+	if (os.name == "posix"):
 		os.system('clear')
 	else:
 		os.system('cls')
-
+	
+	for i in range(height // 2 - 4):
+		print("")
+	
 	print("Leaderboard".center(width))
 	print("")
 	print(f"Player Score".center(width))
@@ -42,18 +45,17 @@ def print_leaderboard(Ldb):
 
 	if length <= 5:
 		for name, score in Ldb:
-	
 			print("")
 			print(f"{name} {score}".center(width))
 	else:
 		for i in range(5):
-			name, score == Ldb[i]
+			name, score = Ldb[i]
 			print("")
 			print(f"{name} {score}".center(width))
 		
 		print("")
-		rank, name, score = Ldb[5]
-		print(f"You place {rank} with a score of {score}".center(width))
+		rank, score = Ldb[5]
+		print(f"You placed {rank} with a score of {score}".center(width))
 
 
 # Entry point here
@@ -212,7 +214,11 @@ def main():
 
 	server.send("END".encode())
 	Leaderboard = server.recv(RECEIVE_SIZE)
-	Ldb = pickle.load(Leaderboard)
+	
+	if DEBUG:
+		print(Leaderboard)
+	
+	Ldb = pickle.loads(Leaderboard)
 	while True:
 		print_leaderboard(Ldb)
 		sleep(0.69)
