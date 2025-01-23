@@ -5,9 +5,6 @@ from collections import deque
 import datetime
 import os
 
-# Constant configuration variables go here, use ALL CAPS to indicate constant
-
-
 
 # Named constants go here
 RECEIVE_SIZE = 4096
@@ -16,13 +13,6 @@ DEBUG = 1
 
 # Global variables go here
 word_list = []
-
-
-
-# TODO: Catch things that can go wrong and give more meaningful error messages to the user in the try-except statements, currently just exits so we can get the exception names 8
-
-# NOTE: Always capitalise protocol messages before encoding and sending to server to avoid "apple" and "Apple" being different, there's an example of how to send and receive messages in the server.py
-# this only applies to protocol messages, the word list sent will still be case sensitive.
 
 
 def print_leaderboard(Ldb):
@@ -56,13 +46,11 @@ def print_leaderboard(Ldb):
 		print("")
 		rank, score = Ldb[5]
 		print(f"You placed {rank} with a score of {score}".center(width))
+		print("Press CTRL+C to quit")
 
 
-# Entry point here
 def main():
-    # Defined variable
-	# Don't remove this line, it somehow fk with the index of the code
-    
+	
 	# Prompt the user for the address of the server instance to connect to until connection is successful
 	while True:
 		try:
@@ -84,29 +72,31 @@ def main():
 		else:
 			break
 
-	# Main game loop is here
 	# Should we do a help cmd to guide the user? ~ Francis
-	
-	
-	# TODO: Check if we connected to an instance of the game server or just a random server, CHECKSUM is defined globally, if we send VERIFY and CHECKSUM doesn't match, give a meaningful message then exit 1
+
+	print(" Welcome to gaem, a multiplayer speed typing game where the fastest and most accurate player comes up on top.\n To exit press CTRL + C. \n It is recommended for you to zoom into your console for better visibility.")
 	
 	server.sendall("VERIFY".encode())
 	verifier = server.recv(RECEIVE_SIZE).decode()
-
 
 	if verifier != CHECKSUM:
 		print("Please connect to a valid game server")
 		exit()
 
-
-	# TODO: Prompt the user for a username and use it for each of their submissions to the server, we'll use a set on the server end to prevent duplicate names 0
-	#~ Francis
 	while True:
-		name_request = str(input("Name?"))
+		name_request = str(input("Name?")).strip()
+
+		if not name_request.isalnum():
+			print("Name must be alphanumeric")
+			continue
+
+		if len(name_request) > 16:
+			print("Name must be less than 16 characters")
+			continue
 
 		server.sendall("SET_NAME".encode())
 		server.sendall(f"{name_request}".encode())
-		
+
 		print(f"Requesting name set to {name_request}")
 
 		# Waiting for server to respond
@@ -122,7 +112,7 @@ def main():
 			break
 
 
-	# TODO: Don't start the game and show a waiting prompt until all players are connected 2
+	# Don't start the game and show a waiting prompt until all players are connected
 	server.sendall("READY".encode())
 	print("Waiting for Players")
 
@@ -138,6 +128,7 @@ def main():
 		temp_receive_size = pickle.loads(temp_receive_size_bytes)
 
 	server.sendall("REQUEST_WORD_PAYLOAD".encode())
+	
 	response = server.recv(RECEIVE_SIZE).decode()
 	if response == "WORD_PAYLOAD":
 		word_list_bytes = server.recv(temp_receive_size)
@@ -152,13 +143,13 @@ def main():
 			print(word_list)
 
 
-	# TODO: Actually implement the game itself, once the game starts we need to get data from the server, parse it, get input from the user, send it to the server 3
+	# Actually implement the game itself, once the game starts we need to get data from the server, parse it, get input from the user, send it to the server
 	# Plan to make this a func?
 	next_list = deque([])
 
 	
 	if len(word_list) == 0:
-		print("No word list receive, please check on server side")
+		print("No word list received, please check on server side")
 		exit()
 
 	if len(word_list) > 5:
@@ -171,6 +162,7 @@ def main():
 	# Game start here
 	for n in range(len(word_list)):
 		server.sendall("CLIENT_PACKET".encode())
+		
 		print(word_list[n]) # Show word to print
 		
 		print('Next: ', end='') # Show next 5 words
@@ -190,7 +182,7 @@ def main():
 			next_list.popleft()
 		
 		time_start = datetime.datetime.now()
-		player_input = input()
+		player_input = input().strip()
 		time_end = datetime.datetime.now()
 
 		if player_input == word_list[n]:
@@ -206,22 +198,19 @@ def main():
 		sleep(0.1) # This delay is here to stop the server from being overwhelmed with packets
 		
 		print('')
-  
-	# TODO: Clear the terminal first before printing each new prompt 5
-	# TODO: Show leaderboard after player completes the list 4
 
 
-	server.send("END".encode())
-	Leaderboard = server.recv(RECEIVE_SIZE)
-	
-	if DEBUG:
-		print(Leaderboard)
-	
-	Ldb = pickle.loads(Leaderboard)
+	# Show leaderboard after player completes the list
 	while True:
+		server.send("REQUEST_LEADERBOARD".encode())
+		Leaderboard = server.recv(RECEIVE_SIZE)
+
+		if DEBUG:
+			print(Leaderboard)
+		
+		Ldb = pickle.loads(Leaderboard)
 		print_leaderboard(Ldb)
-		sleep(0.69)
-	# TODO: After prompt the user if they want to exit or play another round after the previous round finishes 9
+		sleep(10)
 
 # Calls the main function
 main()

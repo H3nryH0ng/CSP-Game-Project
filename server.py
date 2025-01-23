@@ -9,7 +9,7 @@ from sys import getsizeof
 
 
 # Constant configuration variables go here, use ALL CAPS to indicate constant
-MAX_CONNECTIONS = 1
+MAX_CONNECTIONS = 4
 PORT = 6969
 DICTIONARY_PATH = "test.txt"
 WORD_SET_LENGTH = 5
@@ -66,7 +66,7 @@ def gen_leaderboard(player_object):
 	else:
 		for i in range(5):
 			result.append((current_leaderboard[i].username, current_leaderboard[i].score))
-   
+
 		if player_object.username not in [name[0] for name in result]:
 			result.append((current_leaderboard.index(player_object), player_object.username, player_object.score))
 
@@ -77,32 +77,19 @@ def gen_leaderboard(player_object):
 
 
 '''
-Target function to handle each client in a separate thread to avoid blocking functions like socket.recv() from blocking the main thread, this allows us to handle multiple clients
+Target function to handle each client in a separate thread
 client is a client socket to the client, which is what we use to send data to it
 address contains the ip address and the port of the client
 '''
 def handle_connection(client, address, player_object):
-	# For debugging purposes only
 	if DEBUG:
 		print(f"{client}")
 		print(f"{address}")
 	
-	# Try to execute the code inside the block, catch _ANY_ exception, aka errors, print them to the console, and exit
+	
 	try:
-		# Infinite loop to keep checking, getting, and sending new data
 		while True:
-			'''
-			message contains what we received in a string
-			client.recv() recieves RAW BYTES transmitted from the client
-			.decode is a method we use to decode the raw bytes to a string
-			socket.recv is a blocking call meaning execution will stop here until there's more data to read
-			'''
 			message = client.recv(RECEIVE_SIZE).decode()
-
-			'''
-			NOTE: ALL strings sent should be converted to UPPERCASE before sending to avoid "apple" and "Apple" being different, 
-			this should only apply to protocol keywords, the contents of messages sent in two parts should remain case sensitive/
-			'''
 			
 			# if message is FF, it means the client surrendered
 			if message == "FF":
@@ -117,6 +104,7 @@ def handle_connection(client, address, player_object):
 			# if message received is empty, client has disconnected
 			elif message == "":
 				print(f"Client {address} disconnected")
+
 				client.close()
 				break
 			
@@ -136,7 +124,9 @@ def handle_connection(client, address, player_object):
 				if DEBUG:
 					print(player_object.score, player_object.username, player_object.current_combo)
 
-			elif message == "END":
+			elif message == "REQUEST_LEADERBOARD":
+				print(f"Client {address} requested leaderboard."
+
 				leaderboard = gen_leaderboard(player_object)
 				leaderboard_bytes = pickle.dumps(leaderboard)
 				
@@ -187,20 +177,13 @@ def handle_connection(client, address, player_object):
 
 				client.sendall("START".encode())
 			else:
-				print(f"{message}")
-				'''
-				example of how to send data through a socket, "men" is a python string object, not just the characters m,e, and n
-				str.encode() encodes the string in UTF-8 and returns the byte representation of it back which is what we want to send
-				client.sendall("men") will try to send a python object
-				same goes for receiving messages as well
-				'''
-				client.sendall("men".upper().encode())
-			
+				print(f"Got unknown message {message} from {address}. Ignoring")
+
 			if DEBUG:
 				print(f"Connection thread handler for client {address} alive.")
 
 	except Exception as e:
-		print(f"Caught: {e}")
+		print(f"Thread handler for client {address} caught {e}. Disconnected")
 		client.close()
 
 
@@ -252,7 +235,6 @@ def pickle_list(list_object):
 	return (result, size)
 
 
-#Entry point here
 def main():
 	if PORT < 1024 or PORT > 65353:
 		print("Invalid port number")
@@ -306,7 +288,6 @@ def main():
 			players.append(new_player_object)
 			
 			# Creates a new thread and calls handle_connection() with arguements client, address we got from socket.accept()
-			# This is not accurate at all but just think of it as assigning one core out of many from your CPU to execute this function
 			new_thread = threading.Thread(target = handle_connection, args=(client, address, new_player_object))
 			
 			# For each thread we create, add them to the list threads
@@ -322,13 +303,31 @@ def main():
 
 		print("All players ready, starting game.")
 		
-		# Wait for all threads to complete
+	
+	except KeyboardInterrupt:
+		print("KeyboardInterrupt detected. Terminating server.")
+		sock.close()
+		exit()
+
+	except Exception as e:
+		print(f"Caught: {e}")
+	
+	finally:
 		for thread in threads:
 			thread.join()
 		
-	except Exception as e:
-		print(f"Caught: {e}")
-		exit()
+		sock.close()
+		
 
 # calls the main function
-main()
+while True:
+	names = set()
+	lock = threading.Lock()
+	threads = []
+	players = []
+	word_list = []
+	word_list_bytes = b""
+	word_list_bytes_size = int(0)
+	ready = 0
+	
+	main()

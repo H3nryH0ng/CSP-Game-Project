@@ -39,9 +39,9 @@ REQUEST_WORD_PAYLOAD
 The client sends REQUEST_WORD_PAYLOAD and the server will respond with a word payload in the form of a python list object
 
 
-END
+REQUEST_LEADERBOARD
 Client sends to the server to get the current leaderboard after the game ends and disconnects the client, the client should be expecting the leaderboard before disconnecting.
-The server will respond by sending a python list object with the names and scores of people at the top
+The server will respond by sending a python list object with the names and scores of people at the top, if the client is not in the top 5, their position would be sent as the 6th element in the list.
 
 
 SERVER_TERMINATED
