@@ -8,29 +8,17 @@ from time import sleep
 from sys import getsizeof
 
 
-# Constant configuration variables go here, use ALL CAPS to indicate constant
+# Constant configuration variables
 MAX_CONNECTIONS = 4
 PORT = 6969
 DICTIONARY_PATH = "test.txt"
 WORD_SET_LENGTH = 5
 
 
-# Named constants go here
+# Named constants
 RECEIVE_SIZE = 4096
 CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
 DEBUG = 1
-
-
-# Global variables go here
-names = set()
-lock = threading.Lock()
-threads = []
-players = []
-word_list = []
-word_list_bytes = b""
-word_list_bytes_size = int(0)
-ready = 0
-
 
 class player():
 	def __init__(self):
@@ -125,7 +113,7 @@ def handle_connection(client, address, player_object):
 					print(player_object.score, player_object.username, player_object.current_combo)
 
 			elif message == "REQUEST_LEADERBOARD":
-				print(f"Client {address} requested leaderboard."
+				print(f"Client {address} requested leaderboard.")
 
 				leaderboard = gen_leaderboard(player_object)
 				leaderboard_bytes = pickle.dumps(leaderboard)
@@ -275,9 +263,7 @@ def main():
 		# Start listening on socket sock, with a limit on the maximum number of connections specified in MAX_CONNECTIONS
 		sock.listen(MAX_CONNECTIONS)
 		print(f"Listening on port {PORT}")
-		
-		
-		# Keep accepting connections until MAX_CONNECTIONS is reached
+
 		connected = 0
 		while connected < MAX_CONNECTIONS:
 			# socket.accept() returns two things, the client socket, and the client IP address
@@ -319,8 +305,9 @@ def main():
 		sock.close()
 		
 
-# calls the main function
+# Calls the main function
 while True:
+    # Global variables
 	names = set()
 	lock = threading.Lock()
 	threads = []
@@ -329,5 +316,7 @@ while True:
 	word_list_bytes = b""
 	word_list_bytes_size = int(0)
 	ready = 0
-	
+
+	print("Starting another round")
 	main()
+
