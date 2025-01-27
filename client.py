@@ -14,51 +14,38 @@ DEBUG = 1
 # Global variables go here
 word_list = []
 
-width, height = os.get_terminal_size()
 
-# Centered printing
-def printC(text):
-	print(text.center(width))
+def print_leaderboard(Ldb):
+	width, height = os.get_terminal_size()
 
-# To clear the terminal
-def clear_terminal():
 	if (os.name == "posix"):
 		os.system('clear')
 	else:
 		os.system('cls')
-
-
-def print_leaderboard(Ldb):
-	#width, height = os.get_terminal_size()
-	
-	clear_terminal()
 	
 	for i in range(height // 2 - 4):
 		print("")
-		
-	printC("=====> G A E M <=====")
+	
+	print("Leaderboard".center(width))
 	print("")
-	printC("LEADERBOARD")
-	print("")
-	printC("(Player : Score)")
+	print(f"Player Score".center(width))
 	print("")
 
 	length = len(Ldb)
 
 	if length <= 5:
 		for name, score in Ldb:
-			printC(f"{name} : {score}")
 			print("")
-			
+			print(f"{name} {score}".center(width))
 	else:
 		for i in range(5):
 			name, score = Ldb[i]
-			printC(f"{name} : {score}")
 			print("")
+			print(f"{name} {score}".center(width))
 		
 		print("")
 		rank, score = Ldb[5]
-		printC(f"You placed {rank} with a score of {score}")
+		print(f"You placed {rank} with a score of {score}".center(width))
 		print("Press CTRL+C to quit")
 
 
@@ -67,8 +54,8 @@ def main():
 	# Prompt the user for the address of the server instance to connect to until connection is successful
 	while True:
 		try:
-			address = input("Enter server address: ")
-			port = int(input("Enter server port number [1024-65353]: "))
+			address = input("Server address? ")
+			port = int(input("Server port number [1024-65353]? "))
 
 			if port < 1024 or port > 65353:
 				raise Exception("Invalid port number")
@@ -83,18 +70,11 @@ def main():
 			exit()
 		
 		else:
-			clear_terminal()
 			break
 
 	# Should we do a help cmd to guide the user? ~ Francis
-	
-	printC("=====> G A E M <=====")
-	print(" ")
-	printC("Welcome to GAEM, a multiplayer speed typing game where the fastest and most accurate player comes up on top.")
-	printC("To exit press CTRL + C.")
-	printC("It is recommended for you to zoom into your console for better visibility.")
-	print(" ")
-	print("-".center(width, "-"))
+
+	print(" Welcome to gaem, a multiplayer speed typing game where the fastest and most accurate player comes up on top.\n To exit press CTRL + C. \n It is recommended for you to zoom into your console for better visibility.")
 	
 	server.sendall("VERIFY".encode())
 	verifier = server.recv(RECEIVE_SIZE).decode()
@@ -104,7 +84,7 @@ def main():
 		exit()
 
 	while True:
-		name_request = str(input("Enter your name: ")).strip()
+		name_request = str(input("Name?")).strip()
 
 		if not name_request.isalnum():
 			print("Name must be alphanumeric")
@@ -139,7 +119,6 @@ def main():
 	starter = server.recv(RECEIVE_SIZE).decode()
 	
 	if starter == "START":
-		clear_terminal()
 		server.sendall("REQUEST_TEMP_RECEIVE_SIZE".encode())
 
 
@@ -183,20 +162,16 @@ def main():
 	# Game start here
 	for n in range(len(word_list)):
 		server.sendall("CLIENT_PACKET".encode())
-		printC("=====> G A E M <=====")
-		print(" ")
-		printC(word_list[n]) # Show word to print
-		print(" ")
 		
-		print('Next: \n', end='') # Show next 5 words
+		print(word_list[n]) # Show word to print
+		
+		print('Next: ', end='') # Show next 5 words
 
 		for word in next_list:
 			print(word, end='')
 			if word != next_list[-1]:
 				print(', ', end='')
-		print(" ")
-		print(" ")
-		print("-".center(width, "-"))
+		print('')
 
 		# Create a list with the next 5 words
 		if n < (len(word_list) - 6):
@@ -212,10 +187,8 @@ def main():
 
 		if player_input == word_list[n]:
 			delta = int(((time_end - time_start).total_seconds())*1000)
-			clear_terminal()
 		else:
 			delta = -1
-			clear_terminal()
 
 		if DEBUG:
 			print(type(delta), delta)
