@@ -13,15 +13,33 @@ DEBUG = 1
 
 # Global variables go here
 word_list = []
-
 width, height = os.get_terminal_size()
+
+# Center the player input
+def centered_input(current_word):
+	width, height = os.get_terminal_size()
+	remainder = len(current_word) % 2
+	mid_char = None
+	
+	# Calculations according to the length of the current word so later the centered input positions itself correctly
+	if remainder == 1:
+		mid_char = (len(current_word) // 2)
+	else:
+		mid_char = (len(current_word) // 2) - 1
+		
+	# Moves the input to the center, with its width spacing measured so it looks nice (refer to the mid_char calculation)
+	user_input = input(f"\033[{height // 2};{(width // 2) - mid_char}H")
+
+	return user_input
 
 # For centered printing
 def printC(text):
+	width, height = os.get_terminal_size()
 	print(text.center(width))
 
 # To clear the terminal
 def clear_terminal():
+	width, height = os.get_terminal_size()
 	if (os.name == "posix"):
 		os.system('clear')
 	else:
@@ -30,10 +48,8 @@ def clear_terminal():
 
 def print_leaderboard(Ldb):
 	clear_terminal()
-	
-	for i in range(height // 2 - 4):
-		print("")
-		
+
+	print("\n")
 	printC("=====> G A E M <=====")
 	print("")
 	printC("LEADERBOARD")
@@ -47,7 +63,7 @@ def print_leaderboard(Ldb):
 		for name, score in Ldb:
 			printC(f"{name} : {score}")
 			print("")
-			
+
 	else:
 		for i in range(5):
 			name, score = Ldb[i]
@@ -57,7 +73,9 @@ def print_leaderboard(Ldb):
 		print("")
 		rank, score = Ldb[5]
 		printC(f"You placed {rank} with a score of {score}")
-		print("Press CTRL+C to quit")
+	printC("CTRL+C to quit")
+	print("")
+	printC("-" * 30)
 
 
 def main():
@@ -86,13 +104,14 @@ def main():
 
 	# Should we do a help cmd to guide the user? ~ Francis
 	
+	print("\n")
 	printC("=====> G A E M <=====")
 	print(" ")
 	printC("Welcome to GAEM, a multiplayer speed typing game where the fastest and most accurate player comes up on top.")
-	printC("To exit press CTRL + C.")
+	printC("To exit press FF.")
 	printC("It is recommended for you to zoom into your console for better visibility.")
 	print(" ")
-	print("-".center(width, "-"))
+	printC("-" * 30)
 	
 	server.sendall("VERIFY".encode())
 	verifier = server.recv(RECEIVE_SIZE).decode()
@@ -111,6 +130,12 @@ def main():
 		if len(name_request) > 16:
 			print("Name must be less than 16 characters")
 			continue
+
+		# FF to quit
+		if name_request == "FF":
+			server.send("FF".encode())
+			clear_terminal()
+			break
 
 		server.sendall("SET_NAME".encode())
 		server.sendall(f"{name_request}".encode())
@@ -181,20 +206,28 @@ def main():
 	# Game start here
 	for n in range(len(word_list)):
 		server.sendall("CLIENT_PACKET".encode())
+		print("\n")
 		printC("=====> G A E M <=====")
 		print(" ")
+		printC("TYPE THE WORD BELOW CORRECTLY AS QUICK AS POSSIBLE!")
+		printC("-" * 30)
 		printC(word_list[n]) # Show word to print
-		print(" ")
-		
+		print("\n" * 2)
+
+		width, height = os.get_terminal_size()
+		print("\n" * (height // 3))
+
+		print("\n" * 5)
 		print('Next: \n', end='') # Show next 5 words
 
 		for word in next_list:
 			print(word, end='')
 			if word != next_list[-1]:
 				print(', ', end='')
-		print(" ")
-		print(" ")
-		print("-".center(width, "-"))
+		print("\n")
+		print("FF to forfeit :(")
+		print("\n")
+		printC("-" * 30)
 
 		# Create a list with the next 5 words
 		if n < (len(word_list) - 6):
@@ -204,17 +237,20 @@ def main():
 		elif len(next_list) != 0:
 			next_list.popleft()
 		
+		player_input = centered_input(word_list[n])  # Get centered input
 		time_start = datetime.datetime.now()
-		player_input = input().strip()
+		player_input = player_input.strip()  # Clean up the input
 		time_end = datetime.datetime.now()
 
 		if player_input == word_list[n]:
 			delta = int(((time_end - time_start).total_seconds())*1000)
-			clear_terminal()
+		elif player_input == "FF":	# FF to forfeit
+			server.send("FF".encode())
 		else:
 			delta = -1
-			clear_terminal()
-
+		
+		clear_terminal()
+		
 		if DEBUG:
 			print(type(delta), delta)
 		
@@ -222,7 +258,7 @@ def main():
 		server.sendall(delta_byte)
 		sleep(0.1) # This delay is here to stop the server from being overwhelmed with packets
 		
-		print('')
+		
 
 
 	# Show leaderboard after player completes the list
@@ -235,7 +271,7 @@ def main():
 		
 		Ldb = pickle.loads(Leaderboard)
 		print_leaderboard(Ldb)
-		sleep(10)
+		sleep(1)
 
 # Calls the main function
 main()
