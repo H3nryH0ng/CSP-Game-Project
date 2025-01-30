@@ -13,40 +13,69 @@ DEBUG = 1
 
 # Global variables go here
 word_list = []
+width, height = os.get_terminal_size()
 
-
-def print_leaderboard(Ldb):
+# Center the player input
+def centered_input(current_word):
 	width, height = os.get_terminal_size()
+	remainder = len(current_word) % 2
+	mid_char = None
+	
+	# Calculations according to the length of the current word so later the centered input positions itself correctly
+	if remainder == 1:
+		mid_char = (len(current_word) // 2)
+	else:
+		mid_char = (len(current_word) // 2) - 1
+		
+	# Moves the input to the center, with its width spacing measured so it looks nice (refer to the mid_char calculation)
+	user_input = input(f"\033[{height // 2};{(width // 2) - mid_char}H")
 
+	return user_input
+
+# For centered printing
+def printC(text):
+	width, height = os.get_terminal_size()
+	print(text.center(width))
+
+# To clear the terminal
+def clear_terminal():
+	width, height = os.get_terminal_size()
 	if (os.name == "posix"):
 		os.system('clear')
 	else:
 		os.system('cls')
-	
-	for i in range(height // 2 - 4):
-		print("")
-	
-	print("Leaderboard".center(width))
+
+
+def print_leaderboard(Ldb):
+	clear_terminal()
+
+	print("\n")
+	printC("=====> G A E M <=====")
 	print("")
-	print(f"Player Score".center(width))
+	printC("LEADERBOARD")
+	print("")
+	printC("(Player : Score)")
 	print("")
 
 	length = len(Ldb)
 
 	if length <= 5:
 		for name, score in Ldb:
+			printC(f"{name} : {score}")
 			print("")
-			print(f"{name} {score}".center(width))
+
 	else:
 		for i in range(5):
 			name, score = Ldb[i]
+			printC(f"{name} : {score}")
 			print("")
-			print(f"{name} {score}".center(width))
 		
 		print("")
 		rank, score = Ldb[5]
-		print(f"You placed {rank} with a score of {score}".center(width))
-		print("Press CTRL+C to quit")
+		printC(f"You placed {rank} with a score of {score}")
+	printC("CTRL+C to quit")
+	print("")
+	printC("-" * 30)
 
 
 def main():
@@ -54,8 +83,8 @@ def main():
 	# Prompt the user for the address of the server instance to connect to until connection is successful
 	while True:
 		try:
-			address = input("Server address? ")
-			port = int(input("Server port number [1024-65353]? "))
+			address = input("Enter server address: ")
+			port = int(input("Enter server port number [1024-65353]: "))
 
 			if port < 1024 or port > 65353:
 				raise Exception("Invalid port number")
@@ -70,11 +99,19 @@ def main():
 			exit()
 		
 		else:
+			clear_terminal()
 			break
 
 	# Should we do a help cmd to guide the user? ~ Francis
-
-	print(" Welcome to gaem, a multiplayer speed typing game where the fastest and most accurate player comes up on top.\n To exit press CTRL + C. \n It is recommended for you to zoom into your console for better visibility.")
+	
+	print("\n")
+	printC("=====> G A E M <=====")
+	print(" ")
+	printC("Welcome to GAEM, a multiplayer speed typing game where the fastest and most accurate player comes up on top.")
+	printC("To exit press FF.")
+	printC("It is recommended for you to zoom into your console for better visibility.")
+	print(" ")
+	printC("-" * 30)
 	
 	server.sendall("VERIFY".encode())
 	verifier = server.recv(RECEIVE_SIZE).decode()
@@ -84,7 +121,7 @@ def main():
 		exit()
 
 	while True:
-		name_request = str(input("Name?")).strip()
+		name_request = str(input("Enter your name: ")).strip()
 
 		if not name_request.isalnum():
 			print("Name must be alphanumeric")
@@ -93,6 +130,12 @@ def main():
 		if len(name_request) > 16:
 			print("Name must be less than 16 characters")
 			continue
+
+		# FF to quit
+		if name_request == "FF":
+			server.send("FF".encode())
+			clear_terminal()
+			break
 
 		server.sendall("SET_NAME".encode())
 		server.sendall(f"{name_request}".encode())
@@ -119,6 +162,7 @@ def main():
 	starter = server.recv(RECEIVE_SIZE).decode()
 	
 	if starter == "START":
+		clear_terminal()
 		server.sendall("REQUEST_TEMP_RECEIVE_SIZE".encode())
 
 
@@ -162,16 +206,28 @@ def main():
 	# Game start here
 	for n in range(len(word_list)):
 		server.sendall("CLIENT_PACKET".encode())
-		
-		print(word_list[n]) # Show word to print
-		
-		print('Next: ', end='') # Show next 5 words
+		print("\n")
+		printC("=====> G A E M <=====")
+		print(" ")
+		printC("TYPE THE WORD BELOW CORRECTLY AS QUICK AS POSSIBLE!")
+		printC("-" * 30)
+		printC(word_list[n]) # Show word to print
+		print("\n" * 2)
+
+		width, height = os.get_terminal_size()
+		print("\n" * (height // 3))
+
+		print("\n" * 5)
+		print('Next: \n', end='') # Show next 5 words
 
 		for word in next_list:
 			print(word, end='')
 			if word != next_list[-1]:
 				print(', ', end='')
-		print('')
+		print("\n")
+		print("FF to forfeit :(")
+		print("\n")
+		printC("-" * 30)
 
 		# Create a list with the next 5 words
 		if n < (len(word_list) - 6):
@@ -181,15 +237,20 @@ def main():
 		elif len(next_list) != 0:
 			next_list.popleft()
 		
+		player_input = centered_input(word_list[n])  # Get centered input
 		time_start = datetime.datetime.now()
-		player_input = input().strip()
+		player_input = player_input.strip()  # Clean up the input
 		time_end = datetime.datetime.now()
 
 		if player_input == word_list[n]:
 			delta = int(((time_end - time_start).total_seconds())*1000)
+		elif player_input == "FF":	# FF to forfeit
+			server.send("FF".encode())
 		else:
 			delta = -1
-
+		
+		clear_terminal()
+		
 		if DEBUG:
 			print(type(delta), delta)
 		
@@ -197,7 +258,7 @@ def main():
 		server.sendall(delta_byte)
 		sleep(0.1) # This delay is here to stop the server from being overwhelmed with packets
 		
-		print('')
+		
 
 
 	# Show leaderboard after player completes the list
@@ -210,7 +271,7 @@ def main():
 		
 		Ldb = pickle.loads(Leaderboard)
 		print_leaderboard(Ldb)
-		sleep(10)
+		sleep(1)
 
 # Calls the main function
 main()
