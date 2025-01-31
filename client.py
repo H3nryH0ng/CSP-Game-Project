@@ -119,23 +119,35 @@ def main():
 	if verifier != CHECKSUM:
 		print("Please connect to a valid game server")
 		exit()
+	
+	# name.txt
+	try:
+		with open("name.txt", "r") as file:
+			saved_name = file.readlines()
+			print(f"Saved name detected\nWelcome back {saved_name[0]}, to continue press Enter without typing anything.\nEnter a new one if you want a new name :D\n")
+
+	except FileNotFoundError:
+			saved_name = None
+
 
 	while True:
 		name_request = str(input("Enter your name: ")).strip()
 
+		if name_request == "":
+			if saved_name != None:
+				name_request = saved_name[0]
+			else:
+				print("No saved name detected, please enter your name again")
+				continue
+
 		if not name_request.isalnum():
-			print("Name must be alphanumeric")
+			print("Name must be alphanumeric, please try again")
 			continue
 
 		if len(name_request) > 16:
-			print("Name must be less than 16 characters")
+			print("Name must be less than 16 characters, please try again")
 			continue
-
-		# FF to quit
-		if name_request == "FF":
-			server.send("FF".encode())
-			clear_terminal()
-			break
+					
 
 		server.sendall("SET_NAME".encode())
 		server.sendall(f"{name_request}".encode())
@@ -152,6 +164,9 @@ def main():
 		# Name request is okay
 		elif server_msg == "NAME_OK":
 			print(f"Name set to {name_request}")
+			
+			with open("name.txt", "w") as file:
+				file.write(name_request)
 			break
 
 
