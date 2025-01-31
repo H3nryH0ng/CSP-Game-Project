@@ -121,19 +121,16 @@ def main():
 		exit()
 	
 	# name.txt
-	while True:
-		try:
-			with open("name.txt", "r") as file:
-				saved_name = file.readlines()
-				break
+	try:
+		with open("name.txt", "r") as file:
+			saved_name = file.readlines()
+			print(f"Saved name detected\nWelcome back {saved_name[0]}, to continue press Enter without typing anything.\nEnter a new one if you want a new name :D\n")
 
-		except FileNotFoundError:
-			with open("name.txt", "w") as file:
-				saved_name = None
-				break	
+	except FileNotFoundError:
+			saved_name = None
+
 
 	while True:
-
 		name_request = str(input("Enter your name: ")).strip()
 
 		if name_request == "":
