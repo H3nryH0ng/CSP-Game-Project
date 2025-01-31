@@ -1,19 +1,18 @@
 import socket
-from time import sleep
-import pickle
-from collections import deque
 import datetime
 import os
+import pickle
+
+from time import sleep
+from collections import deque
 
 
 # Named constants go here
 RECEIVE_SIZE = 4096
 CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
-DEBUG = 1
 
 # Global variables go here
 word_list = []
-width, height = os.get_terminal_size()
 
 # Center the player input
 def centered_input(current_word):
@@ -79,7 +78,6 @@ def print_leaderboard(Ldb):
 
 
 def main():
-	
 	# Prompt the user for the address of the server instance to connect to until connection is successful
 	while True:
 		try:
@@ -97,13 +95,10 @@ def main():
 		except Exception as e:
 			print(f"{e}")
 			exit()
-		
 		else:
 			clear_terminal()
 			break
 
-	# Should we do a help cmd to guide the user? ~ Francis
-	
 	print("\n")
 	printC("=====> G A E M <=====")
 	print(" ")
@@ -192,20 +187,10 @@ def main():
 	if response == "WORD_PAYLOAD":
 		word_list_bytes = server.recv(temp_receive_size)
 		
-		if DEBUG:
-			print(word_list_bytes)
-
 		global word_list
 		word_list = pickle.loads(word_list_bytes)
 
-		if DEBUG:
-			print(word_list)
-
-
-	# Actually implement the game itself, once the game starts we need to get data from the server, parse it, get input from the user, send it to the server
-	# Plan to make this a func?
 	next_list = deque([])
-
 	
 	if len(word_list) == 0:
 		print("No word list received, please check on server side")
@@ -259,34 +244,27 @@ def main():
 
 		if player_input == word_list[n]:
 			delta = int(((time_end - time_start).total_seconds())*1000)
-		elif player_input == "FF":	# FF to forfeit
+		elif player_input == "FF": # FF to forfeit
 			server.send("FF".encode())
+			server.close()
+			exit()
 		else:
 			delta = -1
 		
 		clear_terminal()
 		
-		if DEBUG:
-			print(type(delta), delta)
-		
 		delta_byte = pickle.dumps(delta)
 		server.sendall(delta_byte)
 		sleep(0.1) # This delay is here to stop the server from being overwhelmed with packets
 		
-		
-
-
 	# Show leaderboard after player completes the list
 	while True:
 		server.send("REQUEST_LEADERBOARD".encode())
 		Leaderboard = server.recv(RECEIVE_SIZE)
 
-		if DEBUG:
-			print(Leaderboard)
-		
 		Ldb = pickle.loads(Leaderboard)
 		print_leaderboard(Ldb)
-		sleep(1)
+		sleep(10) # Don't spam the server for leaderboard requests
 
 # Calls the main function
 main()
