@@ -272,7 +272,7 @@ while True:
 	word_list_bytes_size = int(0)
 	ready = 0
 
-	print("Starting another round")
+	print("Starting round")
 	try:
 		main()
 	
