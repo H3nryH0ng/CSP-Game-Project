@@ -10,9 +10,9 @@ from sys import getsizeof
 
 # Constant configuration variables
 MAX_CONNECTIONS = 1
-PORT = 6969
-DICTIONARY_PATH = "test.txt"
-WORD_SET_LENGTH = 5
+PORT = 1234
+DICTIONARY_PATH = "default.txt"
+WORD_SET_LENGTH = 10
 
 
 # Named constants
@@ -272,7 +272,7 @@ while True:
 	word_list_bytes_size = int(0)
 	ready = 0
 
-	print("Starting round")
+	print("Starting new round. CTRL+C to quit.")
 	try:
 		main()
 	
