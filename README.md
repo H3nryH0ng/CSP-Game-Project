@@ -1,6 +1,6 @@
 # GAEM
-GAEM is a multiplayer speed-typing game made for a foundation level programing course. [GitHub link](https://github.com/Soo0707/CSP-Game-Project)
 ![Showcase Image](img/1.png)
+GAEM is a multiplayer speed-typing game made for a foundation level programing course. [GitHub link](https://github.com/Soo0707/CSP-Game-Project)
 
 ---
 # Instructions
@@ -33,44 +33,43 @@ The server exits in case `WORD_SET_LENGTH` exceeds the number of lines of the di
 
 # Protocol
 
-Keywords that the client and server can use to communicate, we just have to compare the string we receive to determine what we send, subject to change, in plain-text
+Keywords that the client and server can use to communicate, we just have to compare the string we receive to determine what we send, subject to change, in plain-text<br/>
 NOTE: we're sending and receiving the python objects using pickle.dumps() and pickle.loads()
 
-
-## START
+### START
 Server sends START to start a round
 
-## VERIFY
+### VERIFY
 Client sends VERIFY and server responds with a magic string to ensure we don't connect to a random server
 
-## SET_NAME [NAME(str)]
+### SET_NAME [NAME(str)]
 Client sends a username to the server to see if it's available, if available continue if not we send NAME_UNAVAILABLE, sent in two parts so we don't have to use regex to match strings
 
-## NAME_UNAVAILABLE
+### NAME_UNAVAILABLE
 Server sends to client if username is already taken, client must prompt the user again for another username
 
-## NAME_OK
+### NAME_OK
 Server sends to clients if name is accepted
 
-## CLIENT_PACKET [TIME_DELTA(int)]
+### CLIENT_PACKET [TIME_DELTA(int)]
 Client sends this to the server every time a player submits a word,
 TIME_DELTA is the difference between when the player receives the prompt and when they submit in milliseconds, if TIME_DELTA == -1, the player broke combo.
 Sent in two parts, every time the player submits
 
-## FF
+### FF
 Client sends to server if player drops out of the game
 
-## REQUEST_WORD_PAYLOAD
+### REQUEST_WORD_PAYLOAD
 The client sends REQUEST_WORD_PAYLOAD and the server will respond with a word payload in the form of a python list object
 
-## REQUEST_LEADERBOARD
+### REQUEST_LEADERBOARD
 Client sends to the server to get the current leaderboard after the game ends and disconnects the client, the client should be expecting the leaderboard before disconnecting.
 The server will respond by sending a python list object with the names and scores of people at the top, if the client is not in the top 5, their position would be sent as the 6th element in the list.
 
-## READY
+### READY
 Client sends to the server after username is set to show that it's waiting. Sending START will start the client.
 
-## REQUEST_TEMP_RECEIVE_SIZE [SIZE(int)]
+### REQUEST_TEMP_RECEIVE_SIZE [SIZE(int)]
 The word list object sent to the client may be larger than RECEIVE_SIZE, the server would send the client TEMP_RECEIVE_SIZE and then SIZE as an INT object, TEMP_SET_RECEIVE_SIZE should then be used in the following recv() call to fetch the entire object.
 
 ---
