@@ -187,14 +187,14 @@ def pickle_list(list_object):
 
 
 def main():
-	if PORT < 1024 or PORT > 65353:
-		print("Invalid port number")
-		exit()
-
 	if type(MAX_CONNECTIONS) != int or type(PORT) != int or type(DICTIONARY_PATH) != str or type(WORD_SET_LENGTH) != int:
 		print("MAX_CONNECTIONS, PORT, and WORD_SET_LENGTH must be of type int.\n DICTIONARY_PATH must be of type str.")
 		exit()
 
+	if PORT < 1024 or PORT > 65353 or MAX_CONNECTIONS <= 0:
+		print("Invalid port number or MAX_CONNECTIONS less than or equal to 0")
+		exit()
+	
 	lines = count_lines()
 	
 	if WORD_SET_LENGTH > lines:
