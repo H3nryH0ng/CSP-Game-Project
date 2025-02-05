@@ -35,7 +35,7 @@ The server exits in case `WORD_SET_LENGTH` exceeds the number of lines of the di
 # Protocol
 
 Keywords that the client and server can use to communicate, we just have to compare the string we receive to determine what we send, subject to change, in plain-text<br/>
-NOTE: we're sending and receiving the python objects using pickle.dumps() and pickle.loads()
+NOTE: we're sending and receiving the python objects using pickle.dump() and pickle.load()
 
 ### START
 Server sends START to start a round
