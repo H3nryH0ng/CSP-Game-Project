@@ -103,7 +103,7 @@ def main():
 	printC("=====> G A E M <=====")
 	print(" ")
 	printC("Welcome to GAEM, a multiplayer speed typing game where the fastest and most accurate player comes up on top.")
-	printC("To exit press FF.")
+	printC("CTRL + C to exit.")
 	printC("It is recommended for you to zoom into your console for better visibility.")
 	print(" ")
 	printC("-" * 30)
@@ -244,9 +244,11 @@ def main():
 
 		if player_input == word_list[n]:
 			delta = int(((time_end - time_start).total_seconds())*1000)
-		elif player_input == "FF": # FF to forfeit
+		elif player_input.upper() == "FF": # FF to forfeit
 			server.send("FF".encode())
 			server.close()
+			clear_terminal()
+			printC("YOU FORFEITED!")
 			exit()
 		else:
 			delta = -1
@@ -267,4 +269,10 @@ def main():
 		sleep(10) # Don't spam the server for leaderboard requests
 
 # Calls the main function
-main()
+while True:
+	try:
+		main()
+
+	except KeyboardInterrupt:
+		print("\nKeyboardInterrupt detected. Game disconnected.")
+		exit()
