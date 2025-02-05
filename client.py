@@ -9,7 +9,7 @@ from collections import deque
 
 # Named constants go here
 RECEIVE_SIZE = 4096
-CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
+CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577\n"
 
 # Global variables go here
 word_list = []
@@ -89,9 +89,7 @@ def main():
 			
 			# Creates a socket, server, which uses AF_INET (Internet Protocol), and SOCK_STREAM (TCP)
 			server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			# Connect to address and port given
 			server.connect((address, port))
-		
 		except Exception as e:
 			print(f"{e}")
 			exit()
@@ -99,6 +97,8 @@ def main():
 			clear_terminal()
 			break
 
+	serverFO = server.makefile("rwb", buffering = 0)
+	
 	print("\n")
 	printC("=====> G A E M <=====")
 	print(" ")
@@ -108,9 +108,10 @@ def main():
 	print(" ")
 	printC("-" * 30)
 	
-	server.sendall("VERIFY".encode())
-	verifier = server.recv(RECEIVE_SIZE).decode()
+	serverFO.write("VERIFY\n".encode())
+	serverFO.flush()
 
+	verifier = serverFO.readline().decode()
 	if verifier != CHECKSUM:
 		print("Please connect to a valid game server")
 		exit()
@@ -142,22 +143,22 @@ def main():
 		if len(name_request) > 16:
 			print("Name must be less than 16 characters, please try again")
 			continue
-					
 
-		server.sendall("SET_NAME".encode())
-		server.sendall(f"{name_request}".encode())
-
+		serverFO.write("SET_NAME\n".encode())
+		serverFO.write(f"{name_request}\n".encode())
+		serverFO.flush()
+		
 		print(f"Requesting name set to {name_request}")
 
 		# Waiting for server to respond
-		server_msg = server.recv(RECEIVE_SIZE).decode()
-
+		server_msg = serverFO.readline().decode()
+		
 		# Name request is taken
-		if server_msg == "NAME_UNAVAILABLE":
+		if server_msg == "NAME_UNAVAILABLE\n":
 			print("Name taken, please use another name")
 
 		# Name request is okay
-		elif server_msg == "NAME_OK":
+		elif server_msg == "NAME_OK\n":
 			print(f"Name set to {name_request}")
 			
 			with open("name.txt", "w") as file:
@@ -166,29 +167,22 @@ def main():
 
 
 	# Don't start the game and show a waiting prompt until all players are connected
-	server.sendall("READY".encode())
+	serverFO.write("READY\n".encode())
+	serverFO.flush()
 	print("Waiting for Players")
 
-	starter = server.recv(RECEIVE_SIZE).decode()
+	starter = serverFO.readline().decode()
 	
-	if starter == "START":
+	if starter == "START\n":
 		clear_terminal()
-		server.sendall("REQUEST_TEMP_RECEIVE_SIZE".encode())
 
+	serverFO.write("REQUEST_WORD_PAYLOAD\n".encode())
+	serverFO.flush()
 
-	response = server.recv(RECEIVE_SIZE).decode()
-	if response == "TEMP_RECEIVE_SIZE":
-		temp_receive_size_bytes = server.recv(RECEIVE_SIZE)
-		temp_receive_size = pickle.loads(temp_receive_size_bytes)
-
-	server.sendall("REQUEST_WORD_PAYLOAD".encode())
-	
-	response = server.recv(RECEIVE_SIZE).decode()
-	if response == "WORD_PAYLOAD":
-		word_list_bytes = server.recv(temp_receive_size)
-		
+	response = serverFO.readline().decode()
+	if response == "WORD_PAYLOAD\n":
 		global word_list
-		word_list = pickle.loads(word_list_bytes)
+		word_list = pickle.load(serverFO)
 
 	next_list = deque([])
 	
@@ -205,7 +199,9 @@ def main():
 		
 	# Game start here
 	for n in range(len(word_list)):
-		server.sendall("CLIENT_PACKET".encode())
+		serverFO.write("CLIENT_PACKET\n".encode())
+		serverFO.flush()
+
 		print("\n")
 		printC("=====> G A E M <=====")
 		print(" ")
@@ -244,9 +240,13 @@ def main():
 
 		if player_input == word_list[n]:
 			delta = int(((time_end - time_start).total_seconds())*1000)
+		
 		elif player_input.upper() == "FF": # FF to forfeit
-			server.send("FF".encode())
+			serverFO.write("FF\n".encode())
+			serverFO.flush()
+			serverFO.close()
 			server.close()
+
 			clear_terminal()
 			printC("YOU FORFEITED!")
 			exit()
@@ -255,16 +255,14 @@ def main():
 		
 		clear_terminal()
 		
-		delta_byte = pickle.dumps(delta)
-		server.sendall(delta_byte)
-		sleep(0.1) # This delay is here to stop the server from being overwhelmed with packets
+		pickle.dump(delta, serverFO)
+		serverFO.flush()
 		
-	# Show leaderboard after player completes the list
 	while True:
-		server.send("REQUEST_LEADERBOARD".encode())
-		Leaderboard = server.recv(RECEIVE_SIZE)
+		serverFO.write("REQUEST_LEADERBOARD\n".encode())
+		serverFO.flush()
 
-		Ldb = pickle.loads(Leaderboard)
+		Ldb = pickle.load(serverFO)
 		print_leaderboard(Ldb)
 		sleep(10) # Don't spam the server for leaderboard requests
 

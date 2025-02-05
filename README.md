@@ -70,9 +70,6 @@ The server will respond by sending a python list object with the names and score
 ### READY
 Client sends to the server after username is set to show that it's waiting. Sending START will start the client.
 
-### REQUEST_TEMP_RECEIVE_SIZE [SIZE(int)]
-The word list object sent to the client may be larger than RECEIVE_SIZE, the server would send the client TEMP_RECEIVE_SIZE and then SIZE as an INT object, TEMP_SET_RECEIVE_SIZE should then be used in the following recv() call to fetch the entire object.
-
 ---
 # Credits
 default.txt is a dictionary file obtained from [here](https://github.com/first20hours/google-10000-english).

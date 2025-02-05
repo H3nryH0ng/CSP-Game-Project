@@ -17,7 +17,7 @@ WORD_SET_LENGTH = 10
 
 # Named constants
 RECEIVE_SIZE = 4096
-CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577"
+CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577\n"
 
 class player():
 	def __init__(self):
@@ -65,31 +65,32 @@ Target function to handle each client in a separate thread
 client is a client socket to the client, which is what we use to send data to it
 address contains the ip address and the port of the client
 '''
-def handle_connection(client, address, player_object):
+def handle_connection(client, clientFO, address, player_object):
 	while True:
 		try:
-			message = client.recv(RECEIVE_SIZE).decode()
+			message = clientFO.readline().decode()
 		except Exception as e:
 			print(f"Connection handler for {address} caught {e}. Disconnecting.")
+			clientFO.close()
 			client.close()
 			break
 		
-		if message == "FF":
+		if message == "FF\n":
 			print(f"Client {address} surrendered")
+			clientFO.close()
 			client.close()
 			break
 		
 		# if message received is empty, client has disconnected
 		elif message == "":
 			print(f"Client {address} disconnected")
+			clientFO.close()
 			client.close()
 			break
 		
-		elif message == "CLIENT_PACKET":
-			delta_bytes = client.recv(RECEIVE_SIZE)
-			
+		elif message == "CLIENT_PACKET\n":
 			try:
-				delta = pickle.loads(delta_bytes)
+				delta = pickle.load(clientFO)
 			except Exception:
 				print(f"Connection handler for {address} got faulty data. Ignoring")
 				continue
@@ -100,39 +101,40 @@ def handle_connection(client, address, player_object):
 				player_object.add_combo()
 				player_object.calculate_score(delta)
 
-		elif message == "REQUEST_LEADERBOARD":
+		elif message == "REQUEST_LEADERBOARD\n":
 			leaderboard = gen_leaderboard(player_object)
-			leaderboard_bytes = pickle.dumps(leaderboard)
 			
-			client.sendall(leaderboard_bytes)
+			pickle.dump(leaderboard, clientFO)
+			clientFO.flush()
 
-		elif message == "VERIFY":
-			client.sendall(CHECKSUM.encode())
+		elif message == "VERIFY\n":
+			clientFO.write(CHECKSUM.encode())
+			clientFO.flush()
 		
-		elif message == "SET_NAME":
-			requested_name = client.recv(RECEIVE_SIZE).decode()
+		elif message == "SET_NAME\n":
+			# [:-1] gets rid of trailing \n
+			requested_name = clientFO.readline().decode()[:-1]
 			print(f"Client {address} requested name {requested_name}.")
 
 			with lock:
 				if requested_name in names:
-					client.sendall("NAME_UNAVAILABLE".encode())
+					clientFO.write("NAME_UNAVAILABLE\n".encode())
 				else:
-					client.sendall("NAME_OK".encode())
+					clientFO.write("NAME_OK\n".encode())
 					names.add(requested_name)
-			
+				clientFO.flush()
 			player_object.set_name(requested_name)
 		
-		elif message == "REQUEST_TEMP_RECEIVE_SIZE":
-			client.sendall("TEMP_RECEIVE_SIZE".encode())
-			client.sendall(pickle.dumps(word_list_bytes_size))
-
-		elif message == "REQUEST_WORD_PAYLOAD":
+		elif message == "REQUEST_WORD_PAYLOAD\n":
 			print(f"{address} requested word payload")
 
-			client.sendall("WORD_PAYLOAD".encode())
-			client.sendall(word_list_bytes)
+			clientFO.write("WORD_PAYLOAD\n".encode())
+			clientFO.flush()
+
+			pickle.dump(word_list, clientFO)
+			clientFO.flush()
 		
-		elif message == "READY":
+		elif message == "READY\n":
 			with lock:
 				global ready
 				ready += 1
@@ -140,7 +142,8 @@ def handle_connection(client, address, player_object):
 			while ready != MAX_CONNECTIONS:
 				sleep(0.1)
 
-			client.sendall("START".encode())
+			clientFO.write("START\n".encode())
+			clientFO.flush()
 		else:
 			print(f"Got unknown message {message} from {address}. Ignoring")
 
@@ -179,13 +182,6 @@ def generate_word_list(lines):
 	return result
 
 
-def pickle_list(list_object):
-	result = pickle.dumps(list_object)
-	size = getsizeof(result) + 16
-
-	return (result, size)
-
-
 def main():
 	if type(MAX_CONNECTIONS) != int or type(PORT) != int or type(DICTIONARY_PATH) != str or type(WORD_SET_LENGTH) != int:
 		print("MAX_CONNECTIONS, PORT, and WORD_SET_LENGTH must be of type int.\n DICTIONARY_PATH must be of type str.")
@@ -205,10 +201,6 @@ def main():
 	word_list = generate_word_list(lines)
 	print(f"Word set of length {WORD_SET_LENGTH} successfully generated")
 	
-	global word_list_bytes
-	global word_list_bytes_size
-	word_list_bytes, word_list_bytes_size = pickle_list(word_list)
-
 	'''
 	Create a socket object, sock, which is a bytestream of RAW data.
 	AF_INET tells the socket to use Internet Protocol
@@ -235,11 +227,13 @@ def main():
 		client, address = sock.accept()
 		print(f"Accepted connection from {address}")
 		
+		clientFO = client.makefile("rwb", buffering = 0)
+
 		new_player_object = player()
 		players.append(new_player_object)
 		
 		# Creates a new thread and calls handle_connection() with arguements client, address we got from socket.accept()
-		new_thread = threading.Thread(target = handle_connection, args=(client, address, new_player_object))
+		new_thread = threading.Thread(target = handle_connection, args=(client, clientFO, address, new_player_object))
 		
 		# For each thread we create, add them to the list threads
 		threads.append(new_thread)
@@ -268,8 +262,6 @@ while True:
 	threads = []
 	players = []
 	word_list = []
-	word_list_bytes = b""
-	word_list_bytes_size = int(0)
 	ready = 0
 
 	print("Starting new round. CTRL+C to quit.")
