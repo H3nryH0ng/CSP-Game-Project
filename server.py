@@ -16,7 +16,6 @@ WORD_SET_LENGTH = 10
 
 
 # Named constants
-RECEIVE_SIZE = 4096
 CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577\n"
 
 class player():
