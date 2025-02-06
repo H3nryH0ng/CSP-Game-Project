@@ -1,7 +1,7 @@
 <h1 align="center">GAEM</h1>
 
 ![Showcase Image](img/1.png)
-GAEM is a multiplayer speed-typing game made for a foundation level programing course. [GitHub link](https://github.com/Soo0707/CSP-Game-Project)
+GAEM is a multiplayer speed-typing game made for a foundation level programing course.
 
 ---
 # Instructions

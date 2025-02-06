@@ -7,12 +7,12 @@ from time import sleep
 from collections import deque
 
 
-# Named constants go here
-RECEIVE_SIZE = 4096
+# Named constants
 CHECKSUM = "f5cb05cce8c03b4c82efc1dba3ace46d613474675ac8dde3a9d083869c1e8577\n"
 
-# Global variables go here
+# Global variables
 word_list = []
+
 
 # Center the player input
 def centered_input(current_word):
